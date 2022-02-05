@@ -29,6 +29,13 @@ mainWindow.title('Control Systems Simulator')
 ######################################################
 #######      VARIABLES AND INITIAL VALUES      #######
 ######################################################
+
+# Slider values
+plantValue = tk.DoubleVar()
+pValue = tk.DoubleVar()
+iValue = tk.DoubleVar()
+dValue = tk.DoubleVar()
+
 # Sector A.
 plantNum = tk.StringVar(mainWindow,'[1,2,3,...]')  # Hint text.
 plantDen = tk.StringVar(mainWindow,'[1,2,3,...]')
@@ -174,6 +181,21 @@ for the figure on this new window, including: zoom, pan, save and more.
 ##############################
 ## Widget-related functions ##
 ##############################
+def get_current_value():
+    return '{: .2f}'.format(current_value.get())
+
+def pSlider_changed(event):
+    print("Cambio proporcional")
+    
+def iSlider_changed(event):
+    print("Cambio integral")
+    
+def dSlider_changed(event):
+    print("Cambio derivativo")
+    
+def plantSlider_changed(event):
+    print("Cambio planta")
+
 def closedLoop():
    cl = tk.Toplevel(mainWindow)
    cl.title('Implemented Closed Loop')
@@ -702,6 +724,7 @@ Please enter valid numerical data using the format [a,b,c].""")
                indexes('MYD',In,inReg,yReg,tReg,yUD)
                graph(lab,inServo,tServo,yServo,tUR,yUR,tReg,yReg,tUD,yUD)
       except ValueError:
+      # Add context to error eg. Numerator degree greater than denominator degree
          tkinter.messagebox.showerror('Simulation Error', """SIMULATION ERROR: A non-proper transfer function.
 has been entered.""")
       # Closed Loop maximum sensitivity Ms.
@@ -739,11 +762,11 @@ menubar.add_cascade(label='Help',menu=helpmenu)
 sectorA = ttk.LabelFrame(mainWindow,text='General Data')
 sectorA.place(x=15,y=5,width=605)
 sectorB = ttk.LabelFrame(mainWindow,text='Simulation Data')
-sectorB.place(x=17,y=285) #,height=208
+sectorB.place(x=15,y=430) #,height=208
 sectorC = ttk.LabelFrame(mainWindow,text='Graphics')
-sectorC.place(x=15,y=535)
+sectorC.place(x=15,y=680)
 sectorD = ttk.LabelFrame(mainWindow,text='Response Parameters')
-sectorD.place(x=335,y=285)
+sectorD.place(x=335,y=430)
 sectorE = ttk.LabelFrame(mainWindow,text='Simulation Results')
 sectorE.place(x=625,y=5,width=795,height=708)
 
@@ -753,11 +776,15 @@ tk.Label(sectorA,text='Process Data:').grid(row=1,column=1,padx=10,sticky=tk.W)
 tk.Label(sectorA,text='Numerator:').grid(row=2,column=1,padx=10,sticky=tk.W)
 tk.Label(sectorA,text='Denominator:').grid(row=3,column=1,padx=10,sticky=tk.W)
 tk.Label(sectorA,text='Dead time:').grid(row=4,column=1,padx=10,sticky=tk.W)
-tk.Label(sectorA,text='P(s) Transfer Function:').grid(row=5,column=1,columnspan=2,padx=10,sticky='nsew')
+tk.Label(sectorA,text='P(s) Transfer Function:').grid(row=6,column=1,columnspan=2,padx=10,sticky='nsew')
 tk.Label(sectorA,text='Controller Data:').grid(row=1,column=3,padx=10,sticky=tk.W)
 tk.Label(sectorA,text='Numerator:').grid(row=2,column=3,padx=10,sticky=tk.W)
 tk.Label(sectorA,text='Denominator:').grid(row=3,column=3,padx=10,sticky=tk.W)
-tk.Label(sectorA,text='C(s) Transfer Function:').grid(row=5,column=3,columnspan=2,padx=10,sticky='nsew')
+tk.Label(sectorA,text='C(s) Transfer Function:').grid(row=7,column=3,columnspan=2,padx=10,sticky='nsew')
+tk.Label(sectorA,text='Valor Planta:').grid(row=5,column=1,columnspan=1,padx=0,sticky='nsew')
+tk.Label(sectorA,text='Valor P:').grid(row=4,column=3,columnspan=1,padx=0,sticky='nsew')
+tk.Label(sectorA,text='Valor I:').grid(row=5,column=3,columnspan=1,padx=0,sticky='nsew')
+tk.Label(sectorA,text='Valor D:').grid(row=6,column=3,columnspan=1,padx=0,sticky='nsew')
 # Entries.
 pnumEntry = tk.Entry(sectorA,textvariable=plantNum)
 pnumEntry.grid(row=2,column=2,padx=10,pady=5)
@@ -769,26 +796,35 @@ cnumEntry = tk.Entry(sectorA,textvariable=contNum)
 cnumEntry.grid(row=2,column=4,padx=10)
 cdenEntry = tk.Entry(sectorA,textvariable=contDen)
 cdenEntry.grid(row=3,column=4)
+# Sliders
+barraPlant = tk.Scale(sectorA, from_=0, to=100, orient='horizontal',command=plantSlider_changed, variable=plantValue)
+barraPlant.grid(row=5,column=2,pady=2)
+barraP = tk.Scale(sectorA, from_=0, to=1000, orient='horizontal',command=pSlider_changed, variable=pValue)
+barraP.grid(row=4,column=4,pady=3)
+barraI = tk.Scale(sectorA, from_=0, to=100, orient='horizontal',command=iSlider_changed, variable=iValue)
+barraI.grid(row=5,column=4,pady=3)
+barraD = tk.Scale(sectorA, from_=0, to=100, orient='horizontal',command=dSlider_changed, variable=dValue)
+barraD.grid(row=6,column=4,pady=2)
 # Frames.
 frameA = tk.Frame(sectorA)  # Frame containing the TF of P(s).
-frameA.grid(row=6,column=1,columnspan=2,sticky='nsew',padx=20)
+frameA.grid(row=8,column=1,columnspan=2,sticky='nsew',padx=100)
 tk.Label(frameA,textvariable=eqP).grid(row=0,column=0)  # Label for P(s) TF.
 tk.Label(frameA,textvariable=exp).grid(row=0,column=1)
 frameB = tk.Frame(sectorA)  # Frame containing the TF of C(s).
-frameB.grid(row=6,column=3,columnspan=2,sticky='nsew',padx=10)
+frameB.grid(row=8,column=3,columnspan=2,sticky='nsew',padx=100)
 tk.Label(frameB,textvariable=eqC,anchor='center').pack()  # Label for C(s) TF.
 # Frames.
 info = tk.Frame(mainWindow)
-info.place(x=530,y=55)
+info.place(x=540,y=55)
 sign = tk.Button(info,bitmap="question",command=closedLoop)
 sign.pack(side="top",expand=1,fill='both')
 # Buttons.
 pResetButton = tk.Button(sectorA,text='Reset Values',bg='#829ce3',command=resetProcess)
-pResetButton.grid(row=7,column=1,columnspan=2,pady=10)
+pResetButton.grid(row=9,column=1,columnspan=2,pady=10)
 cResetButton = tk.Button(sectorA,text='Reset Values',bg='#829ce3',command=resetController)
-cResetButton.grid(row=7,column=3,columnspan=2)
+cResetButton.grid(row=9,column=3,columnspan=2,pady=10)
 #Images.
-img = Image.open("./resources/help.png")
+img = Image.open('./resources/help.png')
 resized_image= img.resize((570,250), Image.ANTIALIAS)
 new_image= ImageTk.PhotoImage(resized_image)
 
