@@ -5,6 +5,7 @@
 ###########################################################
 
 # Libraries.
+import time as sp
 from datetime import datetime
 from PIL import ImageTk, Image
 import numpy as np
@@ -36,6 +37,11 @@ pValue = tk.DoubleVar()
 iValue = tk.DoubleVar()
 dValue = tk.DoubleVar()
 
+# ReRun Prevention
+changeP = False
+changeI = False
+changeD = False
+
 # Sector A.
 plantNum = tk.StringVar(mainWindow,'[1,2,3,...]')  # Hint text.
 plantDen = tk.StringVar(mainWindow,'[1,2,3,...]')
@@ -55,6 +61,7 @@ inTime = tk.DoubleVar()
 magS = tk.DoubleVar()
 magR = tk.DoubleVar()
 check = tk.IntVar()
+checkType = tk.IntVar()
 # Sector C.
 graphics = tk.IntVar()
 # Sector E.
@@ -185,16 +192,30 @@ def get_current_value():
     return '{: .2f}'.format(current_value.get())
 
 def pSlider_changed(event):
-    print("Cambio proporcional")
+    changeP = True;
     
 def iSlider_changed(event):
-    print("Cambio integral")
+    changeI = True;
     
 def dSlider_changed(event):
-    print("Cambio derivativo")
+    changeD = True;
     
 def plantSlider_changed(event):
     print("Cambio planta")
+
+def checkRealtime(*args):
+    realtimeExecute = True
+    if(checkType.get() == 1):
+        simulator()
+    else:
+        simulatorRealtime()
+        # while(1):
+            # simulatorRealtime()
+            # # Rerun protection
+            # if(changeP or changeI or changeD):
+                # realtimeExecute = True
+            # else:
+                
 
 def closedLoop():
    cl = tk.Toplevel(mainWindow)
@@ -741,6 +762,202 @@ Ms = {}
    param.see('end')
    param.configure(state='disabled')
 
+def simulatorRealtime(*args):
+       # GUI settings.
+       runButton.focus()
+       now = datetime.now()
+       dt_string = now.strftime("%d/%m/%Y %H:%M:%S")  # dd/mm/YY H:M:S
+       param.configure(state='normal')
+       param.insert(tk.END,'\n'+dt_string)
+       param.configure(state='disabled')
+       ax1.clear();ax2.clear();ax3.clear();ax4.clear()
+       buttonNW.pack_forget();buttonNE.pack_forget()
+       buttonSW.pack_forget();buttonSE.pack_forget()
+       canvas1.get_tk_widget().pack_forget();canvas2.get_tk_widget().pack_forget()
+       canvas3.get_tk_widget().pack_forget();canvas4.get_tk_widget().pack_forget()
+
+       # Simulation time.
+       try:
+          time = simTime.get()
+          t = np.linspace(0,time,5001)
+       except tkinter.TclError:
+          timeEntry.focus()
+          tkinter.messagebox.showerror('Value Error', """VALUE ERROR: Invalid simulation time value.
+    Please enter valid numerical data.""")
+       
+       # Step magnitude.
+       try:
+          magStep = magS.get()
+       except tkinter.TclError:
+          stepEntry.focus()
+          tkinter.messagebox.showerror('Value Error', """VALUE ERROR: Invalid step input value.
+    Please enter valid numerical data.""")
+       
+       # Ramp magnitude.
+       try:
+          magRamp = magR.get()
+       except tkinter.TclError:
+          rampEntry.focus()
+          tkinter.messagebox.showerror('Value Error', """VALUE ERROR: Invalid ramp slope value.
+    Please enter valid numerical data.""")
+       
+       # Input time.
+       try:
+          timeIn = inTime.get()
+       except tkinter.TclError:
+          tinEntry.focus()
+          tkinter.messagebox.showerror('Value Error', """VALUE ERROR: Invalid input time value.
+    Please enter valid numerical data.""")
+
+       # Input selection.
+       state = check.get()
+       if state == 1: In = 'step'
+       else: In = 'ramp'
+
+       # Control mode selection.
+       transfer = graphics.get()
+       if transfer == 1: mode = 'servo'
+       elif transfer == 2: mode = 'reg'
+       elif transfer == 3: mode = 'both'
+       else: mode = 'process'
+
+       # Process data.
+       try:
+          numeratorP = plantNum.get()
+          numP = conversion(numeratorP)
+       except ValueError:
+          pnumEntry.focus()
+          tkinter.messagebox.showerror('Value Error', """VALUE ERROR: Invalid P(s) numerator values.
+    Please enter valid numerical data using the format [a,b,c].""")
+
+       try:
+          #denominatorP = plantDen.get()
+          #denP = conversion(denominatorP)
+          A = co.tf(numP,1)
+       except ValueError:
+          pdenEntry.focus()
+          tkinter.messagebox.showerror('Value Error', """VALUE ERROR: Invalid P(s) denominator values.
+    Please enter valid numerical data using the format [a,b,c].""")
+       
+       try:
+          dT = deadTime.get()
+          L = float(dT)
+          numPade,denPade = co.pade(L,n=10)
+          Pade = co.tf(numPade,denPade)
+          P = A*Pade
+       except tkinter.TclError:
+          plantDelay.focus()
+          tkinter.messagebox.showerror('Value Error', """VALUE ERROR: Invalid dead time value.
+    Please enter valid numerical data.""")
+       eqP.set(str(A))
+       if L == 0: exp.set('*e^0')
+       else: exp.set('*e^-{} s'.format(dT))
+       
+       if mode == 'process':
+          lab = 'Process'
+          if In == 'step':
+             tP,yP,inP = response(P,magStep,timeIn,t,In)
+             indexes('P',In,inP,yP,tP,0)
+             graph(lab,inP,tP,yP)
+          elif In == 'ramp':
+             tP,yP,inP = response(P,magRamp,timeIn,t,In)
+             indexes('P',In,inP,yP,tP,0)
+             graph(lab,inP,tP,yP)
+          ending = '------------------------------'
+       
+       else:
+          # Controller data.
+          try:
+             #numeratorC = contNum.get()
+             numeratorC = [dValue.get(),pValue.get(),iValue.get()]
+             numC = [float(x) for x in numeratorC]
+             #numC = conversion(numeratorC)
+          except ValueError:
+             cnumEntry.focus()
+             tkinter.messagebox.showerror('Value Error', """VALUE ERROR: Invalid C(s) numerator values.
+    Please enter valid numerical data using the format [a,b,c].""")
+          
+          try:   
+             denominatorC = contDen.get()
+             #denC = conversion(denominatorC)
+             denC = [1,0]
+             C = co.tf(numC,denC)
+          except ValueError:
+             cdenEntry.focus()
+             tkinter.messagebox.showerror('Value Error', """VALUE ERROR: Invalid C(s) denominator values.
+    Please enter valid numerical data using the format [a,b,c].""") 
+          eqC.set(str(C))
+
+          # Calculated transfer functions.
+          MYR = (C*P)/(1+C*P)
+          MYD = P/(1+C*P)
+          S = 1/(1+C*P)
+          UR = C/(1+C*P)
+          UD = (-C*P)/(1+C*P)
+
+          # System response and performance indexes computation.
+          try:
+             if mode == 'servo':
+                lab = 'servo'
+                if In == 'step':
+                   tServo,yServo,inServo = response(MYR,magStep,timeIn,t,In)
+                   tUR,yUR,inUR = response(UR,magStep,timeIn,t,In)
+                   indexes('MYR',In,inServo,yServo,tServo,yUR)
+                   graph(lab,inServo,tServo,yServo,tUR,yUR)
+                elif In == 'ramp':
+                   tServo,yServo,inServo = response(MYR,magRamp,timeIn,t,In)
+                   tUR,yUR,inUR = response(UR,magRamp,timeIn,t,In)
+                   indexes('MYR',In,inServo,yServo,tServo,yUR)
+                   graph(lab,inServo,tServo,yServo,tUR,yUR)
+             elif mode == 'reg':
+                lab = 'reg'
+                if In == 'step':
+                   tReg,yReg,inReg = response(MYD,magStep,timeIn,t,In)
+                   tUD,yUD,inUD = response(UD,magStep,timeIn,t,In)
+                   indexes('MYD',In,inReg,yReg,tReg,yUD)
+                   graph(lab,inReg,tReg,yReg,tUD,yUD)
+                elif In == 'ramp':
+                   tReg,yReg,inReg = response(MYD,magRamp,timeIn,t,In)
+                   tUD,yUD,inUD = response(UD,magRamp,timeIn,t,In)
+                   indexes('MYD',In,inReg,yReg,tReg,yUD)
+                   graph(lab,inReg,tReg,yReg,tUD,yUD)
+             elif mode == 'both':
+                lab = 'both'
+                if In == 'step':
+                   tServo,yServo,inServo = response(MYR,magStep,timeIn,t,In)
+                   tUR,yUR,inUR = response(UR,magStep,timeIn,t,In)
+                   tReg,yReg,inReg = response(MYD,magStep,timeIn,t,In)
+                   tUD,yUD,inUD = response(UD,magStep,timeIn,t,In)
+                   indexes('MYR',In,inServo,yServo,tServo,yUR)
+                   indexes('MYD',In,inReg,yReg,tReg,yUD)
+                   graph(lab,inServo,tServo,yServo,tUR,yUR,tReg,yReg,tUD,yUD)
+                elif In == 'ramp':
+                   tServo,yServo,inServo = response(MYR,magRamp,timeIn,t,In)
+                   tUR,yUR,inUR = response(UR,magRamp,timeIn,t,In)
+                   tReg,yReg,inReg = response(MYD,magRamp,timeIn,t,In)
+                   tUD,yUD,inUD = response(UD,magRamp,timeIn,t,In)
+                   indexes('MYR',In,inServo,yServo,tServo,yUR)
+                   indexes('MYD',In,inReg,yReg,tReg,yUD)
+                   graph(lab,inServo,tServo,yServo,tUR,yUR,tReg,yReg,tUD,yUD)
+             #sectorE.after(100, simulatorRealtime())
+          except ValueError:
+          # Add context to error eg. Numerator degree greater than denominator degree
+             tkinter.messagebox.showerror('Simulation Error', """SIMULATION ERROR: A non-proper transfer function.
+    has been entered.""")
+          # Closed Loop maximum sensitivity Ms.
+          m,p,w = co.bode_plot(S,plot=False)  # This bode function is used to obtain the magnitude of S.
+          Ms = max(m)  # Ms is the maximum value of the magnitude array.
+          Ms = round(Ms,7)
+          ending = """
+    MAXIMUM SENSITIVITY
+    Ms = {}
+    ------------------------------
+    """.format(Ms)
+       param.configure(state='normal')
+       param.insert(tk.END,ending)
+       param.see('end')
+       param.configure(state='disabled')
+
 #################################################
 #######          GUI LAYOUT CODE          #######
 #################################################
@@ -764,9 +981,9 @@ sectorA.place(x=15,y=5,width=605)
 sectorB = ttk.LabelFrame(mainWindow,text='Simulation Data')
 sectorB.place(x=15,y=430) #,height=208
 sectorC = ttk.LabelFrame(mainWindow,text='Graphics')
-sectorC.place(x=15,y=680)
+sectorC.place(x=15,y=710)
 sectorD = ttk.LabelFrame(mainWindow,text='Response Parameters')
-sectorD.place(x=335,y=430)
+sectorD.place(x=335,y=460)
 sectorE = ttk.LabelFrame(mainWindow,text='Simulation Results')
 sectorE.place(x=625,y=5,width=795,height=708)
 
@@ -837,6 +1054,7 @@ tk.Label(sectorB,text='Input time:').grid(row=3,column=1,padx=10,sticky=tk.W)
 tk.Label(sectorB,text='Step magnitude:').grid(row=4,column=1,padx=10,sticky=tk.W)
 tk.Label(sectorB,text='Ramp slope:').grid(row=5,column=1,padx=10,sticky=tk.W)
 tk.Label(sectorB,text='Input type:').grid(row=6,column=1,padx=10,pady=11,sticky=tk.W)
+tk.Label(sectorB,text='Simulation type:').grid(row=7,column=1,padx=10,pady=11,sticky=tk.W)
 # Entries.
 timeEntry = tk.Entry(sectorB,textvariable=simTime)
 timeEntry.grid(row=1,column=2,pady=5)
@@ -854,9 +1072,15 @@ stepOption.grid(row=6,column=2,sticky='w')
 stepOption.select()
 rampOption = tk.Radiobutton(sectorB, text='Ramp',variable=check,value=2)
 rampOption.grid(row=6,column=2,padx=5,sticky='e')
+discreteOption = tk.Radiobutton(sectorB, text='Discrete',variable=checkType,value=1)
+discreteOption.grid(row=7,column=2,sticky='w')
+discreteOption.select()
+realtimeOption = tk.Radiobutton(sectorB, text='Realtime',variable=checkType,value=2)
+realtimeOption.grid(row=7,column=2,padx=5,sticky='e')
+
 # Buttons.
 inputResetButton = tk.Button(sectorB,text='Reset Values',bg='#829ce3',command=resetInputs)
-inputResetButton.grid(row=7,column=1,columnspan=2,pady=9)
+inputResetButton.grid(row=8,column=1,columnspan=2,pady=9)
 
 # Sector C widgets.
 # Radiobuttons.
@@ -872,7 +1096,7 @@ processOption.grid(row=2,column=2,padx=5,sticky='w')
 # Buttons.
 allResetButton = tk.Button(sectorC,text='Reset ALL',bg='#829ce3',width=10,command=masterReset)
 allResetButton.grid(row=3,column=1,pady=21,padx=10,ipady=5)
-runButton = tk.Button(sectorC,text='RUN',bg='#e1e311',width=10,command=simulator)
+runButton = tk.Button(sectorC,text='RUN', bg='#e1e311', width=10, command=checkRealtime)
 runButton.grid(row=3,column=2,padx=10,ipady=5)
 
 # Sector D widgets.
