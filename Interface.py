@@ -1049,7 +1049,8 @@ tk.Label(sectorA,text='Dead Time:').grid(row=8,column=1,columnspan=1,padx=0,stic
 tk.Label(sectorA,text='Kp:').grid(row=5,column=3,columnspan=1,padx=0,sticky='nsew')
 tk.Label(sectorA,text='Ti:').grid(row=6,column=3,columnspan=1,padx=0,sticky='nsew')
 tk.Label(sectorA,text='Td:').grid(row=7,column=3,columnspan=1,padx=0,sticky='nsew')
-tk.Label(sectorA,text='Alpha:').grid(row=8,column=3,columnspan=1,padx=0,sticky='nsew')
+alphaLabel = tk.Label(sectorA,text='Alpha:')
+alphaLabel.grid(row=8,column=3,columnspan=1,padx=0,sticky='nsew')
 # Entries.
 pnumEntry = tk.Entry(sectorA,textvariable=plantNum)
 pnumEntry.grid(row=2,column=2,padx=10,pady=5)
