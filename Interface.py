@@ -466,21 +466,142 @@ def masterButton():
    toolbarI.update()
    canvasI.get_tk_widget().pack(side=tk.TOP,fill=tk.BOTH,expand=1)
 
+def masterButtonRealtime():
+   axI.clear();axII.clear();axIII.clear();axIV.clear()
+   # Shortened version of simulator code.
+   units = timeUnits.get()
+   time = simTime.get()
+   t = np.linspace(0,time,5001)
+   magStep = magS.get()
+   magRamp = magR.get()
+   timeIn = inTime.get()
+   state = check.get()
+   if state == 1: In = 'step'
+   else: In = 'ramp'
+   transfer = graphics.get()
+   if transfer == 1: mode = 'servo'
+   elif transfer == 2: mode = 'reg'
+   elif transfer == 3: mode = 'both'
+   else: mode = 'process'
+   numeratorP = [plantPValue.get()*(plantTauValue.get()**2)]
+   numP = [float(x) for x in numeratorP]
+   denominatorP = [1,(2*plantTauValue.get()*plantZetaValue.get()),plantTauValue.get()**2]
+   denP = [float(x) for x in denominatorP]
+   A = co.tf(numP,denP)
+   dT = plantDeadValue.get()
+   L = float(dT)
+   numPade,denPade = co.pade(L,n=10)
+   Pade = co.tf(numPade,denPade)
+   P = A*Pade
+   if mode == 'process':
+      if In == 'step':
+         tP,yP,inP = response(P,magStep,timeIn,t,In)
+      elif In == 'ramp':
+         tP,yP,inP = response(P,magRamp,timeIn,t,In) 
+      axI.plot(tP,inP,':m',label='r(t)')
+      axI.plot(tP,yP,'-b',label='y(t)');axI.legend()
+      axI.set_xlabel('Time ({})'.format(units));axI.set_ylabel('Amplitude')
+   else:
+      numeratorC = [(alphaValue.get()*pValue.get()*dValue.get()*iValue.get()),pValue.get()*(dValue.get()*(alphaValue.get()+1)+iValue.get()),1]
+      numC = [float(x) for x in numeratorC]
+      denC = [(alphaValue.get()*dValue.get()),1]
+      C = co.tf(numC,denC)
+      MYR = (C*P)/(1+C*P)
+      MYD = P/(1+C*P)
+      UR = C/(1+C*P)
+      UD = (-C*P)/(1+C*P)
+      if mode == 'servo':
+         if In == 'step':
+            tServo,yServo,inServo = response(MYR,magStep,timeIn,t,In)
+            tUR,yUR,inUR = response(UR,magStep,timeIn,t,In)
+         elif In == 'ramp':
+            tServo,yServo,inServo = response(MYR,magRamp,timeIn,t,In)
+            tUR,yUR,inUR = response(UR,magRamp,timeIn,t,In)
+         axI.plot(tServo,inServo,':m',label='r(t)')
+         axI.plot(tServo,yServo,'-b',label='yr(t)');axI.legend()
+         axI.set_xlabel('Time ({})'.format(units));axI.set_ylabel('Amplitude')
+         axII.plot(tServo,inServo,':m',label='r(t)')
+         axII.plot(tUR,yUR,'-b',label='ur(t)');axII.legend()
+         axII.set_xlabel('Time ({})'.format(units));axII.set_ylabel('Amplitude')
+      elif mode == 'reg':
+         if In == 'step':
+            tReg,yReg,inReg = response(MYD,magStep,timeIn,t,In)
+            tUD,yUD,inUD = response(UD,magStep,timeIn,t,In)
+         elif In == 'ramp':
+            tReg,yReg,inReg = response(MYD,magRamp,timeIn,t,In)
+            tUD,yUD,inUD = response(UD,magRamp,timeIn,t,In)
+         axI.plot(tReg,inReg,':m',label='d(t)')
+         axI.plot(tReg,yReg,'-b',label='yd(t)');axI.legend()
+         axI.set_xlabel('Time ({})'.format(units));axI.set_ylabel('Amplitude')
+         axII.plot(tReg,inReg,':m',label='d(t)')
+         axII.plot(tUD,yUD,'-b',label='ud(t)');axII.legend()
+         axII.set_xlabel('Time ({})'.format(units));axII.set_ylabel('Amplitude')
+      elif mode == 'both':
+         if In == 'step':
+            tServo,yServo,inServo = response(MYR,magStep,timeIn,t,In)
+            tUR,yUR,inUR = response(UR,magStep,timeIn,t,In)
+            tReg,yReg,inReg = response(MYD,magStep,timeIn,t,In)
+            tUD,yUD,inUD = response(UD,magStep,timeIn,t,In)
+         elif In == 'ramp':
+            tServo,yServo,inServo = response(MYR,magRamp,timeIn,t,In)
+            tUR,yUR,inUR = response(UR,magRamp,timeIn,t,In)
+            tReg,yReg,inReg = response(MYD,magRamp,timeIn,t,In)
+            tUD,yUD,inUD = response(UD,magRamp,timeIn,t,In)
+         axI.plot(tServo,inServo,':m',label='r(t)')
+         axI.plot(tServo,yServo,'-b',label='yr(t)');axI.legend()
+         axI.set_xlabel('Time ({})'.format(units));axI.set_ylabel('Amplitude')
+         axII.plot(tServo,inServo,':m',label='r(t)')
+         axII.plot(tUR,yUR,'-b',label='ur(t)');axII.legend()
+         axII.set_xlabel('Time ({})'.format(units));axII.set_ylabel('Amplitude')
+         axIII.plot(tServo,inServo,':m',label='d(t)')
+         axIII.plot(tReg,yReg,'-b',label='yd(t)');axIII.legend()
+         axIII.set_xlabel('Time ({})'.format(units));axIII.set_ylabel('Amplitude')
+         axIV.plot(tServo,inServo,':m',label='d(t)')
+         axIV.plot(tUD,yUD,'-b',label='ud(t)');axIV.legend()
+         axIV.set_xlabel('Time ({})'.format(units));axIV.set_ylabel('Amplitude')
+   var = position.get()
+   if var == 1: F = figI
+   elif var == 2: F = figII
+   elif var == 3: F = figIII
+   else: F = figIV
+
+   # Pop-up window.
+   figWindow1 = tk.Toplevel(mainWindow)
+   figWindow1.geometry('700x550')
+   figWindow1.resizable(False,False)
+   canvasI = FigureCanvasTkAgg(F,master=figWindow1)
+   canvasI.get_tk_widget()
+   toolbarI = NavigationToolbar2Tk(canvasI,figWindow1)
+   toolbarI.update()
+   canvasI.get_tk_widget().pack(side=tk.TOP,fill=tk.BOTH,expand=1)
+
 def figViewNW():
    position.set(1)
-   masterButton()
+   if(checkType.get() == 1):
+    masterButton()
+   else:
+    masterButtonRealtime()
 
 def figViewNE():
    position.set(2)
-   masterButton()
+   if(checkType.get() == 1):
+    masterButton()
+   else:
+    masterButtonRealtime()
 
 def figViewSW():
    position.set(3)
-   masterButton()
+   if(checkType.get() == 1):
+    masterButton()
+   else:
+    masterButtonRealtime()
 
 def figViewSE():
    position.set(4)
-   masterButton()
+   if(checkType.get() == 1):
+    masterButton()
+   else:
+    masterButtonRealtime()
 
 ###############################
 ## Simulator core functions. ##
@@ -902,18 +1023,14 @@ def simulatorRealtime(*args):
            else:
               # Controller data.
               try:
-                 #numeratorC = contNum.get()
                  numeratorC = [(alphaValue.get()*pValue.get()*dValue.get()*iValue.get()),pValue.get()*(dValue.get()*(alphaValue.get()+1)+iValue.get()),1]
                  numC = [float(x) for x in numeratorC]
-                 #numC = conversion(numeratorC)
               except ValueError:
                  cnumEntry.focus()
                  tkinter.messagebox.showerror('Value Error', """VALUE ERROR: Invalid C(s) numerator values.
         Please enter valid numerical data using the format [a,b,c].""")
               
               try:   
-                 denominatorC = contDen.get()
-                 #denC = conversion(denominatorC)
                  denC = [(alphaValue.get()*dValue.get()),1]
                  C = co.tf(numC,denC)
               except ValueError:
@@ -1230,20 +1347,20 @@ tk.Label(sectorF,text='Granularity:').grid(row=1,column=3,padx=10,sticky=tk.N)
 tk.Label(sectorF,text='Process:').grid(row=3,column=1,padx=10,sticky=tk.NW)
 tk.Label(sectorF,text='Controller:').grid(row=6,column=1,padx=10,sticky=tk.NW)
 # Radios
-plantPOption = tk.Radiobutton(sectorF, text='K',variable=valueAdjust,value=1)
+plantPOption = tk.Radiobutton(sectorF, text='Proportional Gain',variable=valueAdjust,value=1)
 plantPOption.grid(row=4,column=1,pady=5,padx=10,sticky='w')
 plantPOption.select()
 plantTauOption = tk.Radiobutton(sectorF, text='Nat. Freq.',variable=valueAdjust,value=2)
 plantTauOption.grid(row=4,column=2,pady=5,padx=10,sticky='w')
-plantZetaOption = tk.Radiobutton(sectorF, text='Chi',variable=valueAdjust,value=3)
+plantZetaOption = tk.Radiobutton(sectorF, text='Damping Factor',variable=valueAdjust,value=3)
 plantZetaOption.grid(row=4,column=3,pady=5,padx=10,sticky='w')
 plantDeadOption = tk.Radiobutton(sectorF, text='Dead Time',variable=valueAdjust,value=4)
 plantDeadOption.grid(row=5,column=1,pady=5,padx=10,sticky='w')
 contPOption = tk.Radiobutton(sectorF, text='Kp',variable=valueAdjust,value=5)
 contPOption.grid(row=7,column=1,pady=5,padx=10,sticky='w')
-contIOption = tk.Radiobutton(sectorF, text='Ki',variable=valueAdjust,value=6)
+contIOption = tk.Radiobutton(sectorF, text='Ti',variable=valueAdjust,value=6)
 contIOption.grid(row=7,column=2,pady=5,padx=10,sticky='w')
-contDOption = tk.Radiobutton(sectorF, text='Kd',variable=valueAdjust,value=7)
+contDOption = tk.Radiobutton(sectorF, text='Td',variable=valueAdjust,value=7)
 contDOption.grid(row=7,column=3,pady=5,padx=10,sticky='w')
 contAlphaOption = tk.Radiobutton(sectorF, text='Alpha',variable=valueAdjust,value=8)
 contAlphaOption.grid(row=8,column=1,pady=5,padx=10,sticky='w')
