@@ -32,7 +32,10 @@ mainWindow.title('Control Systems Simulator')
 ######################################################
 
 # Slider values
-plantValue = tk.DoubleVar()
+plantPValue = tk.DoubleVar()
+plantTauValue = tk.DoubleVar()
+plantZetaValue = tk.DoubleVar()
+plantDeadValue = tk.DoubleVar()
 pValue = tk.DoubleVar()
 iValue = tk.DoubleVar()
 dValue = tk.DoubleVar()
@@ -41,6 +44,7 @@ dValue = tk.DoubleVar()
 changeP = tk.IntVar(mainWindow, 0)
 changeI = tk.IntVar(mainWindow, 0)
 changeD = tk.IntVar(mainWindow, 0)
+changeSlide = tk.IntVar(mainWindow, 0)
 realtimeExecute = tk.IntVar(mainWindow, 1)
 
 # Sector A.
@@ -67,6 +71,11 @@ checkType = tk.IntVar()
 graphics = tk.IntVar()
 # Sector E.
 position = tk.IntVar()
+# Sector F.
+valueAdjust = tk.IntVar()
+upperBoundValue = tk.DoubleVar()
+lowerBoundValue = tk.DoubleVar()
+granularityValue = tk.DoubleVar()
 
 #################################################
 #######            FUNCTIONS              #######
@@ -189,6 +198,23 @@ for the figure on this new window, including: zoom, pan, save and more.
 ##############################
 ## Widget-related functions ##
 ##############################
+def loadRange(*args):
+    loadRangeButton.focus()
+    if(valueAdjust.get() == 1):
+        barraPlantP.configure(from_ = lowerBoundValue.get(), to = upperBoundValue.get(), resolution = granularityValue.get())
+    elif(valueAdjust.get() == 2):
+        barraPlantTs.configure(from_ = lowerBoundValue.get(), to = upperBoundValue.get(), resolution = granularityValue.get())
+    elif(valueAdjust.get() == 3):
+        barraPlantZeta.configure(from_ = lowerBoundValue.get(), to = upperBoundValue.get(), resolution = granularityValue.get())
+    elif(valueAdjust.get() == 4):
+        barraPlantTheta.configure(from_ = lowerBoundValue.get(), to = upperBoundValue.get(), resolution = granularityValue.get())
+    elif(valueAdjust.get() == 5):
+        barraP.configure(from_ = lowerBoundValue.get(), to = upperBoundValue.get(), resolution = granularityValue.get())
+    elif(valueAdjust.get() == 6):
+        barraI.configure(from_ = lowerBoundValue.get(), to = upperBoundValue.get(), resolution = granularityValue.get())
+    elif(valueAdjust.get() == 7):
+        barraD.configure(from_ = lowerBoundValue.get(), to = upperBoundValue.get(), resolution = granularityValue.get())
+    
 def get_current_value():
     return '{: .2f}'.format(current_value.get())
 
@@ -201,8 +227,8 @@ def iSlider_changed(event):
 def dSlider_changed(event):
     changeD.set(1)
     
-def plantSlider_changed(event):
-    print("Cambio planta")
+def sliderChanged(event):
+    changeSlide.set(1)
 
 def checkRealtime(*args):
     realtimeExecute.set(1)
@@ -764,7 +790,7 @@ Ms = {}
 
 def simulatorRealtime(*args):
     if realtimeExecute.get() == 1:
-        if changeP.get() == 1 or changeI.get() == 1 or changeD.get() == 1:
+        if changeP.get() == 1 or changeI.get() == 1 or changeD.get() == 1 or changeSlide.get() == 1:
            # GUI settings.
            runButton.focus()
            now = datetime.now()
@@ -827,24 +853,24 @@ def simulatorRealtime(*args):
 
            # Process data.
            try:
-              numeratorP = plantNum.get()
-              numP = conversion(numeratorP)
+              numeratorP = [plantPValue.get()]
+              numP = [float(x) for x in numeratorP]
            except ValueError:
               pnumEntry.focus()
               tkinter.messagebox.showerror('Value Error', """VALUE ERROR: Invalid P(s) numerator values.
         Please enter valid numerical data using the format [a,b,c].""")
 
            try:
-              #denominatorP = plantDen.get()
-              #denP = conversion(denominatorP)
-              A = co.tf(numP,1)
+              denominatorP = [(plantTauValue.get()**2),(2*plantTauValue.get()*plantZetaValue.get()),1]
+              denP = [float(x) for x in denominatorP]
+              A = co.tf(numP,denP)
            except ValueError:
               pdenEntry.focus()
               tkinter.messagebox.showerror('Value Error', """VALUE ERROR: Invalid P(s) denominator values.
         Please enter valid numerical data using the format [a,b,c].""")
            
            try:
-              dT = deadTime.get()
+              dT = plantDeadValue.get()
               L = float(dT)
               numPade,denPade = co.pade(L,n=10)
               Pade = co.tf(numPade,denPade)
@@ -965,6 +991,7 @@ def simulatorRealtime(*args):
     changeP.set(0)
     changeI.set(0)
     changeD.set(0)
+    changeSlide.set(0)
     canvas1.get_tk_widget().update_idletasks       
     mainWindow.after(1, simulatorRealtime)
     
@@ -988,69 +1015,83 @@ menubar.add_cascade(label='Help',menu=helpmenu)
 
 # Main window LabelFrames.
 sectorA = ttk.LabelFrame(mainWindow,text='General Data')
-sectorA.place(x=15,y=5,width=605)
+sectorA.place(x=15,y=5,width=655)
 sectorB = ttk.LabelFrame(mainWindow,text='Simulation Data')
-sectorB.place(x=15,y=430) #,height=208
+sectorB.place(x=675,y=5,width=285) #,height=208
 sectorC = ttk.LabelFrame(mainWindow,text='Graphics')
-sectorC.place(x=15,y=710)
+sectorC.place(x=15,y=453, height=260)
 sectorD = ttk.LabelFrame(mainWindow,text='Response Parameters')
-sectorD.place(x=335,y=460)
+sectorD.place(x=675,y=286,width=285)
 sectorE = ttk.LabelFrame(mainWindow,text='Simulation Results')
-sectorE.place(x=625,y=5,width=795,height=708)
+sectorE.place(x=965,y=5,width=795,height=708)
+sectorF = ttk.LabelFrame(mainWindow,text='Range Adjustment')
+sectorF.place(x=263,y=453,width=407,height=260)
 
 # Sector A widgets.
 # Labels.
-tk.Label(sectorA,text='Process Data:').grid(row=1,column=1,padx=10,sticky=tk.W)
-tk.Label(sectorA,text='Numerator:').grid(row=2,column=1,padx=10,sticky=tk.W)
-tk.Label(sectorA,text='Denominator:').grid(row=3,column=1,padx=10,sticky=tk.W)
-tk.Label(sectorA,text='Dead time:').grid(row=4,column=1,padx=10,sticky=tk.W)
-tk.Label(sectorA,text='P(s) Transfer Function:').grid(row=6,column=1,columnspan=2,padx=10,sticky='nsew')
+tk.Label(sectorA,text='Process Data:').grid(row=1,column=1,padx=0,sticky=tk.W)
+tk.Label(sectorA,text='Numerator:').grid(row=2,column=1,padx=0,sticky=tk.W)
+tk.Label(sectorA,text='Denominator:').grid(row=3,column=1,padx=0,sticky=tk.W)
+tk.Label(sectorA,text='Dead time:').grid(row=4,column=1,padx=0,sticky=tk.W)
+tk.Label(sectorA,text='P(s) Transfer Function:').grid(row=9,column=1,columnspan=2,padx=0,sticky='nsew')
 tk.Label(sectorA,text='Controller Data:').grid(row=1,column=3,padx=10,sticky=tk.W)
 tk.Label(sectorA,text='Numerator:').grid(row=2,column=3,padx=10,sticky=tk.W)
 tk.Label(sectorA,text='Denominator:').grid(row=3,column=3,padx=10,sticky=tk.W)
-tk.Label(sectorA,text='C(s) Transfer Function:').grid(row=7,column=3,columnspan=2,padx=10,sticky='nsew')
-tk.Label(sectorA,text='Valor Planta:').grid(row=5,column=1,columnspan=1,padx=0,sticky='nsew')
-tk.Label(sectorA,text='Valor P:').grid(row=4,column=3,columnspan=1,padx=0,sticky='nsew')
-tk.Label(sectorA,text='Valor I:').grid(row=5,column=3,columnspan=1,padx=0,sticky='nsew')
-tk.Label(sectorA,text='Valor D:').grid(row=6,column=3,columnspan=1,padx=0,sticky='nsew')
+tk.Label(sectorA,text='C(s) Transfer Function:').grid(row=9,column=3,columnspan=2,padx=10,sticky='nsew')
+
+tk.Label(sectorA,text='Kp:').grid(row=5,column=1,columnspan=1,padx=0,sticky='nsew')
+tk.Label(sectorA,text='Tau:').grid(row=6,column=1,columnspan=1,padx=0,sticky='nsew')
+tk.Label(sectorA,text='Zeta:').grid(row=7,column=1,columnspan=1,padx=0,sticky='nsew')
+tk.Label(sectorA,text='Dead Time:').grid(row=8,column=1,columnspan=1,padx=0,sticky='nsew')
+
+tk.Label(sectorA,text='Kp:').grid(row=5,column=3,columnspan=1,padx=0,sticky='nsew')
+tk.Label(sectorA,text='Ki:').grid(row=6,column=3,columnspan=1,padx=0,sticky='nsew')
+tk.Label(sectorA,text='Kd:').grid(row=7,column=3,columnspan=1,padx=0,sticky='nsew')
 # Entries.
 pnumEntry = tk.Entry(sectorA,textvariable=plantNum)
 pnumEntry.grid(row=2,column=2,padx=10,pady=5)
 pdenEntry = tk.Entry(sectorA,textvariable=plantDen)
 pdenEntry.grid(row=3,column=2)
 plantDelay = tk.Entry(sectorA,textvariable=deadTime)
-plantDelay.grid(row=4,column=2,pady=5)
+plantDelay.grid(row=4,column=2)
 cnumEntry = tk.Entry(sectorA,textvariable=contNum)
 cnumEntry.grid(row=2,column=4,padx=10)
 cdenEntry = tk.Entry(sectorA,textvariable=contDen)
 cdenEntry.grid(row=3,column=4)
 # Sliders
-barraPlant = tk.Scale(sectorA, from_=0, to=100, orient='horizontal',command=plantSlider_changed, variable=plantValue)
-barraPlant.grid(row=5,column=2,pady=2)
-barraP = tk.Scale(sectorA, from_=0, to=1000, orient='horizontal',command=pSlider_changed, variable=pValue)
-barraP.grid(row=4,column=4,pady=3)
-barraI = tk.Scale(sectorA, from_=0, to=100, orient='horizontal',command=iSlider_changed, variable=iValue)
-barraI.grid(row=5,column=4,pady=3)
-barraD = tk.Scale(sectorA, from_=0, to=100, orient='horizontal',command=dSlider_changed, variable=dValue)
-barraD.grid(row=6,column=4,pady=2)
+barraPlantP = tk.Scale(sectorA, from_=0, to=100, resolution=0.1, length=200, orient='horizontal',command=sliderChanged, variable=plantPValue)
+barraPlantP.grid(row=5,column=2,pady=2)
+barraPlantTs = tk.Scale(sectorA, from_=0, to=100, resolution=0.1, length=200, orient='horizontal',command=sliderChanged, variable=plantTauValue)
+barraPlantTs.grid(row=6,column=2,pady=2)
+barraPlantZeta = tk.Scale(sectorA, from_=0, to=100, resolution=0.1, length=200, orient='horizontal',command=sliderChanged, variable=plantZetaValue)
+barraPlantZeta.grid(row=7,column=2,pady=2)
+barraPlantTheta = tk.Scale(sectorA, from_=0, to=100, resolution=0.1, length=200, orient='horizontal',command=sliderChanged, variable=plantDeadValue)
+barraPlantTheta.grid(row=8,column=2,pady=2)
+
+barraP = tk.Scale(sectorA, from_=0, to=100, resolution=0.1, length=200, orient='horizontal',command=pSlider_changed, variable=pValue)
+barraP.grid(row=5,column=4,pady=3)
+barraI = tk.Scale(sectorA, from_=0, to=100, resolution=0.1, length=200, orient='horizontal',command=iSlider_changed, variable=iValue)
+barraI.grid(row=6,column=4,pady=3)
+barraD = tk.Scale(sectorA, from_=0, to=100, resolution=0.1, length=200, orient='horizontal',command=dSlider_changed, variable=dValue)
+barraD.grid(row=7,column=4,pady=2)
 # Frames.
 frameA = tk.Frame(sectorA)  # Frame containing the TF of P(s).
-frameA.grid(row=8,column=1,columnspan=2,sticky='nsew',padx=100)
+frameA.grid(row=10,column=1,columnspan=2,sticky='ns',padx=10)
 tk.Label(frameA,textvariable=eqP).grid(row=0,column=0)  # Label for P(s) TF.
 tk.Label(frameA,textvariable=exp).grid(row=0,column=1)
 frameB = tk.Frame(sectorA)  # Frame containing the TF of C(s).
-frameB.grid(row=8,column=3,columnspan=2,sticky='nsew',padx=100)
+frameB.grid(row=10,column=3,columnspan=2,sticky='nsew',padx=10)
 tk.Label(frameB,textvariable=eqC,anchor='center').pack()  # Label for C(s) TF.
 # Frames.
 info = tk.Frame(mainWindow)
-info.place(x=540,y=55)
+info.place(x=595,y=55)
 sign = tk.Button(info,bitmap="question",command=closedLoop)
 sign.pack(side="top",expand=1,fill='both')
 # Buttons.
 pResetButton = tk.Button(sectorA,text='Reset Values',bg='#829ce3',command=resetProcess)
-pResetButton.grid(row=9,column=1,columnspan=2,pady=10)
+pResetButton.grid(row=11,column=1,columnspan=2,pady=10)
 cResetButton = tk.Button(sectorA,text='Reset Values',bg='#829ce3',command=resetController)
-cResetButton.grid(row=9,column=3,columnspan=2,pady=10)
+cResetButton.grid(row=11,column=3,columnspan=2,pady=10)
 #Images.
 img = Image.open('./resources/help.png')
 resized_image= img.resize((570,250), Image.ANTIALIAS)
@@ -1096,21 +1137,21 @@ inputResetButton.grid(row=8,column=1,columnspan=2,pady=9)
 # Sector C widgets.
 # Radiobuttons.
 servoOption = tk.Radiobutton(sectorC, text='Servo Control',variable=graphics,value=1)
-servoOption.grid(row=1,column=1,pady=10,sticky='w')
-servoOption.select()
+servoOption.grid(row=2,column=1,pady=10,sticky='w')
 regOption = tk.Radiobutton(sectorC, text='Regulatory Control',variable=graphics,value=2)
-regOption.grid(row=1,column=2,padx=5,sticky='w')
+regOption.grid(row=1,column=1,pady=5,sticky='w')
+regOption.select()
 bothOption = tk.Radiobutton(sectorC, text='Servo and Regulatory',variable=graphics,value=3)
-bothOption.grid(row=2,column=1,pady=5,sticky='w')
+bothOption.grid(row=3,column=1,pady=5,sticky='w')
 processOption = tk.Radiobutton(sectorC, text='Reaction Curve',variable=graphics,value=4)
-processOption.grid(row=2,column=2,padx=5,sticky='w')
+processOption.grid(row=4,column=1,pady=5,sticky='w')
 # Buttons.
 allResetButton = tk.Button(sectorC,text='Reset ALL',bg='#829ce3',width=10,command=masterReset)
-allResetButton.grid(row=3,column=1,pady=21,padx=10,ipady=5)
+allResetButton.grid(row=5,column=2,pady=5,padx=10,ipady=5)
 runButton = tk.Button(sectorC,text='RUN', bg='#e1e311', width=10, command=checkRealtime)
-runButton.grid(row=3,column=2,padx=10,ipady=5)
+runButton.grid(row=1,column=2,padx=10,ipady=5)
 stopButton = tk.Button(sectorC,text='STOP', bg='#e1e311', width=10, command=stopRealtime)
-stopButton.grid(row=4,column=2,padx=10,ipady=5)
+stopButton.grid(row=2,column=2,padx=10,ipady=5)
 
 # Sector D widgets.
 # Scrollbars.
@@ -1168,6 +1209,39 @@ figIV = Figure(figsize=(5,5),dpi=100)
 figIV, axIV = plt.subplots()
 axIV.set_xlabel('Time (s)');axIV.set_ylabel('Amplitude')
 
+# Sector F widgets.
+# Entries
+lowerBound = tk.Entry(sectorF,textvariable=lowerBoundValue)
+lowerBound.grid(row=2,column=1,pady=5,padx=5)
+upperBound = tk.Entry(sectorF,textvariable=upperBoundValue)
+upperBound.grid(row=2,column=2,pady=5,padx=5)
+granularity = tk.Entry(sectorF,textvariable=granularityValue)
+granularity.grid(row=2,column=3,pady=5,padx=5)
+# Labels
+tk.Label(sectorF,text='Lower Bound:').grid(row=1,column=1,padx=10,sticky=tk.N)
+tk.Label(sectorF,text='Upper Bound:').grid(row=1,column=2,padx=10,sticky=tk.N)
+tk.Label(sectorF,text='Granularity:').grid(row=1,column=3,padx=10,sticky=tk.N)
+tk.Label(sectorF,text='Process:').grid(row=3,column=1,padx=10,sticky=tk.NW)
+tk.Label(sectorF,text='Controller:').grid(row=6,column=1,padx=10,sticky=tk.NW)
+# Radios
+plantPOption = tk.Radiobutton(sectorF, text='Kp',variable=valueAdjust,value=1)
+plantPOption.grid(row=4,column=1,pady=5,padx=10,sticky='w')
+plantPOption.select()
+plantTauOption = tk.Radiobutton(sectorF, text='Tau',variable=valueAdjust,value=2)
+plantTauOption.grid(row=4,column=2,pady=5,padx=10,sticky='w')
+plantZetaOption = tk.Radiobutton(sectorF, text='Zeta',variable=valueAdjust,value=3)
+plantZetaOption.grid(row=4,column=3,pady=5,padx=10,sticky='w')
+plantDeadOption = tk.Radiobutton(sectorF, text='Dead Time',variable=valueAdjust,value=4)
+plantDeadOption.grid(row=5,column=1,pady=5,padx=10,sticky='w')
+contPOption = tk.Radiobutton(sectorF, text='Kp',variable=valueAdjust,value=5)
+contPOption.grid(row=7,column=1,pady=5,padx=10,sticky='w')
+contIOption = tk.Radiobutton(sectorF, text='Ki',variable=valueAdjust,value=6)
+contIOption.grid(row=7,column=2,pady=5,padx=10,sticky='w')
+contDOption = tk.Radiobutton(sectorF, text='Kd',variable=valueAdjust,value=7)
+contDOption.grid(row=7,column=3,pady=5,padx=10,sticky='w')
+# Buttons
+loadRangeButton = tk.Button(sectorF,text='Load Range', bg='#e1e311', width=10, command=loadRange)
+loadRangeButton.grid(row=8,column=2,padx=10,ipady=5)
 ##########################################
 #####        GUI MAIN SETTINGS       #####
 ##########################################
