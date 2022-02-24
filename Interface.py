@@ -42,6 +42,10 @@ iValue = tk.DoubleVar()
 dValue = tk.DoubleVar()
 alphaValue = tk.DoubleVar()
 
+# Controller selection
+controllerSelect = tk.StringVar()
+types = ["Standard", "Series", "Parallel"]
+
 # ReRun Prevention
 changeP = tk.IntVar(mainWindow, 0)
 changeI = tk.IntVar(mainWindow, 0)
@@ -240,7 +244,36 @@ def checkRealtime(*args):
         simulator()
     else:
         simulatorRealtime()
-        
+
+def changeLabelsForPIDType(*args):
+    if(controllerSelect.get() == "Standard"):
+        propLabel.config(text="Kp")
+        intLabel.config(text="Ti")
+        derLabel.config(text="Td")
+        alphaLabel.config(text="α")
+        contPOption.config(text="Kp")
+        contIOption.config(text="Ti")
+        contDOption.config(text="Td")
+        contAlphaOption.config(text="α")
+    elif(controllerSelect.get() == "Parallel"):
+        propLabel.config(text="Kp")
+        intLabel.config(text="Ki")
+        derLabel.config(text="Kd")
+        alphaLabel.config(text="α")
+        contPOption.config(text="Kp")
+        contIOption.config(text="Ki")
+        contDOption.config(text="Kd")
+        contAlphaOption.config(text="α")
+    elif(controllerSelect.get() == "Series"):
+        propLabel.config(text="Kp′")
+        intLabel.config(text="Ti′")
+        derLabel.config(text="Td′")
+        alphaLabel.config(text="α′")
+        contPOption.config(text="Kp′")
+        contIOption.config(text="Ti′")
+        contDOption.config(text="Td′")
+        contAlphaOption.config(text="α′")
+  
 def stopRealtime(*args):
     realtimeExecute.set(0)
     stopButton.focus()
@@ -1023,15 +1056,25 @@ def simulatorRealtime(*args):
            else:
               # Controller data.
               try:
-                 numeratorC = [(alphaValue.get()*pValue.get()*dValue.get()*iValue.get()),pValue.get()*(dValue.get()*(alphaValue.get()+1)+iValue.get()),1]
+                 if(controllerSelect.get() == "Standard"):
+                    numeratorC = [(alphaValue.get()*pValue.get()*dValue.get()*iValue.get()),pValue.get()*(dValue.get()*(alphaValue.get()+1)+iValue.get()),1]
+                 elif(controllerSelect.get() == "Parallel"):
+                    numeratorC = [dValue.get()*(alphaValue.get()*pValue.get()+1), pValue.get()+(alphaValue.get()*iValue.get()*dValue.get()), iValue.get()]
+                 elif(controllerSelect.get() == "Series"):
+                    numeratorC = [pValue.get()*iValue.get()*dValue.get(), iValue.get()+dValue.get(), pValue.get()]
                  numC = [float(x) for x in numeratorC]
               except ValueError:
                  cnumEntry.focus()
                  tkinter.messagebox.showerror('Value Error', """VALUE ERROR: Invalid C(s) numerator values.
         Please enter valid numerical data using the format [a,b,c].""")
               
-              try:   
-                 denC = [(alphaValue.get()*dValue.get()),1]
+              try:
+                 if(controllerSelect.get() == "Standard"):
+                    denC = [(alphaValue.get()*dValue.get()),1]
+                 elif(controllerSelect.get() == "Parallel"):
+                    denC = [alphaValue.get()*dValue.get(),1,0]
+                 elif(controllerSelect.get() == "Series"):
+                    denC = [alphaValue.get()*iValue.get()*dValue.get(), iValue.get(), 0]
                  C = co.tf(numC,denC)
               except ValueError:
                  cdenEntry.focus()
@@ -1134,26 +1177,30 @@ menubar.add_cascade(label='Help',menu=helpmenu)
 
 # Main window LabelFrames.
 sectorA = ttk.LabelFrame(mainWindow,text='General Data')
-sectorA.place(x=15,y=5,width=655)
+sectorA.place(x=15,y=5,width=660)
 sectorB = ttk.LabelFrame(mainWindow,text='Simulation Data')
-sectorB.place(x=675,y=5,width=285) #,height=208
+sectorB.place(x=680,y=5,width=285) #,height=208
 sectorC = ttk.LabelFrame(mainWindow,text='Graphics')
 sectorC.place(x=15,y=453, height=260)
 sectorD = ttk.LabelFrame(mainWindow,text='Response Parameters')
-sectorD.place(x=675,y=286,width=285)
+sectorD.place(x=680,y=286,width=285,height =427)
 sectorE = ttk.LabelFrame(mainWindow,text='Simulation Results')
-sectorE.place(x=965,y=5,width=795,height=708)
+sectorE.place(x=970,y=5,width=795,height=708)
 sectorF = ttk.LabelFrame(mainWindow,text='Range Adjustment')
-sectorF.place(x=263,y=453,width=407,height=260)
+sectorF.place(x=263,y=453,width=412,height=260)
+
+# Font Control
+Desired_font = tkinter.font.Font(size = 9, weight = "bold")
+buttonFont = tkinter.font.Font(size = 9, weight = "bold")
 
 # Sector A widgets.
 # Labels.
-tk.Label(sectorA,text='Process Data:').grid(row=1,column=1,padx=0,sticky=tk.W)
+tk.Label(sectorA,text='Process Data:', font=Desired_font).grid(row=1,column=1,padx=0,sticky=tk.W)
 tk.Label(sectorA,text='Numerator:').grid(row=2,column=1,padx=0,sticky=tk.W)
 tk.Label(sectorA,text='Denominator:').grid(row=3,column=1,padx=0,sticky=tk.W)
 tk.Label(sectorA,text='Dead time:').grid(row=4,column=1,padx=0,sticky=tk.W)
 tk.Label(sectorA,text='P(s) Transfer Function:').grid(row=9,column=1,columnspan=2,padx=0,sticky='nsew')
-tk.Label(sectorA,text='Controller Data:').grid(row=1,column=3,padx=10,sticky=tk.W)
+tk.Label(sectorA,text='Controller Data:', font=Desired_font).grid(row=1,column=3,padx=10,sticky=tk.W)
 tk.Label(sectorA,text='Numerator:').grid(row=2,column=3,padx=10,sticky=tk.W)
 tk.Label(sectorA,text='Denominator:').grid(row=3,column=3,padx=10,sticky=tk.W)
 tk.Label(sectorA,text='C(s) Transfer Function:').grid(row=9,column=3,columnspan=2,padx=10,sticky='nsew')
@@ -1163,11 +1210,16 @@ tk.Label(sectorA,text='Natural\n Frequency :').grid(row=6,column=1,columnspan=1,
 tk.Label(sectorA,text='Damping\n Factor:').grid(row=7,column=1,columnspan=1,padx=0,sticky='nsew')
 tk.Label(sectorA,text='Dead Time:').grid(row=8,column=1,columnspan=1,padx=0,sticky='nsew')
 
-tk.Label(sectorA,text='Kp:').grid(row=5,column=3,columnspan=1,padx=0,sticky='nsew')
-tk.Label(sectorA,text='Ti:').grid(row=6,column=3,columnspan=1,padx=0,sticky='nsew')
-tk.Label(sectorA,text='Td:').grid(row=7,column=3,columnspan=1,padx=0,sticky='nsew')
-alphaLabel = tk.Label(sectorA,text='Alpha:')
+propLabel = tk.Label(sectorA,text='Kp:')
+propLabel.grid(row=5,column=3,columnspan=1,padx=0,sticky='nsew')
+intLabel = tk.Label(sectorA,text='Ti:')
+intLabel.grid(row=6,column=3,columnspan=1,padx=0,sticky='nsew')
+derLabel = tk.Label(sectorA,text='Td:')
+derLabel.grid(row=7,column=3,columnspan=1,padx=0,sticky='nsew')
+alphaLabel = tk.Label(sectorA,text='α:')
 alphaLabel.grid(row=8,column=3,columnspan=1,padx=0,sticky='nsew')
+typeLabel = tk.Label(sectorA,text='PID Type:')
+typeLabel.place(x=573,y=15)
 # Entries.
 pnumEntry = tk.Entry(sectorA,textvariable=plantNum)
 pnumEntry.grid(row=2,column=2,padx=10,pady=5)
@@ -1206,14 +1258,17 @@ frameB = tk.Frame(sectorA)  # Frame containing the TF of C(s).
 frameB.grid(row=10,column=3,columnspan=2,sticky='nsew',padx=10)
 tk.Label(frameB,textvariable=eqC,anchor='center').pack()  # Label for C(s) TF.
 # Frames.
-info = tk.Frame(mainWindow)
-info.place(x=595,y=55)
-sign = tk.Button(info,bitmap="question",command=closedLoop)
-sign.pack(side="top",expand=1,fill='both')
+controllerSelect.set(types[0])
+pidTypeSelect = ttk.OptionMenu(sectorA, controllerSelect, types[0], *types, command=changeLabelsForPIDType)
+pidTypeSelect.place(x=575,y=35, width=80)
+# info = tk.Frame(mainWindow)
+# info.place(x=595,y=55)
+# sign = tk.Button(info,bitmap="question",command=closedLoop)
+# sign.pack(side="top",expand=1,fill='both')
 # Buttons.
-pResetButton = tk.Button(sectorA,text='Reset Values',bg='#829ce3',command=resetProcess)
+pResetButton = tk.Button(sectorA,text='Reset Values',bg='#829ce3',command=resetProcess, font = buttonFont)
 pResetButton.grid(row=11,column=1,columnspan=2,pady=10)
-cResetButton = tk.Button(sectorA,text='Reset Values',bg='#829ce3',command=resetController)
+cResetButton = tk.Button(sectorA,text='Reset Values',bg='#829ce3',command=resetController, font = buttonFont)
 cResetButton.grid(row=11,column=3,columnspan=2,pady=10)
 #Images.
 img = Image.open('./resources/help.png')
@@ -1254,7 +1309,7 @@ realtimeOption = tk.Radiobutton(sectorB, text='Realtime',variable=checkType,valu
 realtimeOption.grid(row=7,column=2,padx=5,sticky='e')
 
 # Buttons.
-inputResetButton = tk.Button(sectorB,text='Reset Values',bg='#829ce3',command=resetInputs)
+inputResetButton = tk.Button(sectorB,text='Reset Values',bg='#829ce3',command=resetInputs, font = buttonFont)
 inputResetButton.grid(row=8,column=1,columnspan=2,pady=9)
 
 # Sector C widgets.
@@ -1269,11 +1324,11 @@ bothOption.grid(row=3,column=1,pady=5,sticky='w')
 processOption = tk.Radiobutton(sectorC, text='Reaction Curve',variable=graphics,value=4)
 processOption.grid(row=4,column=1,pady=5,sticky='w')
 # Buttons.
-allResetButton = tk.Button(sectorC,text='Reset ALL',bg='#829ce3',width=10,command=masterReset)
+allResetButton = tk.Button(sectorC,text='Reset ALL',bg='#829ce3',width=10,command=masterReset, font = buttonFont)
 allResetButton.grid(row=5,column=1,pady=5,padx=10,ipady=5)
-runButton = tk.Button(sectorC,text='RUN', bg='#e1e311', width=10, command=checkRealtime)
+runButton = tk.Button(sectorC,text='RUN', bg='#7aff70', width=10, command=checkRealtime, font = buttonFont)
 runButton.grid(row=5,column=2,padx=10,ipady=5)
-stopButton = tk.Button(sectorC,text='STOP', bg='#e1e311', width=10, command=stopRealtime)
+stopButton = tk.Button(sectorC,text='STOP', bg='#ff7070', width=10, command=stopRealtime, font = buttonFont)
 stopButton.grid(row=6,column=2,padx=10,ipady=5)
 
 # Sector D widgets.
@@ -1281,7 +1336,7 @@ stopButton.grid(row=6,column=2,padx=10,ipady=5)
 scrollbar = tk.Scrollbar(sectorD)
 scrollbar.grid(row=1,column=2,sticky='ns')
 # Text.
-param = tk.Text(sectorD,yscrollcommand=scrollbar.set,height=24,width=30)
+param = tk.Text(sectorD,yscrollcommand=scrollbar.set, height=25,width=40, font="TkDefaultFont")
 param.grid(row=1,column=1,padx=10,pady=10)
 scrollbar.config(command=param.yview)
 
@@ -1362,10 +1417,10 @@ contIOption = tk.Radiobutton(sectorF, text='Ti',variable=valueAdjust,value=6)
 contIOption.grid(row=7,column=2,pady=5,padx=10,sticky='w')
 contDOption = tk.Radiobutton(sectorF, text='Td',variable=valueAdjust,value=7)
 contDOption.grid(row=7,column=3,pady=5,padx=10,sticky='w')
-contAlphaOption = tk.Radiobutton(sectorF, text='Alpha',variable=valueAdjust,value=8)
+contAlphaOption = tk.Radiobutton(sectorF, text='α',variable=valueAdjust,value=8)
 contAlphaOption.grid(row=8,column=1,pady=5,padx=10,sticky='w')
 # Buttons
-loadRangeButton = tk.Button(sectorF,text='Load Range', bg='#e1e311', width=10, command=loadRange)
+loadRangeButton = tk.Button(sectorF,text='Load Range', bg='#fff15c', width=10, command=loadRange, font = buttonFont)
 loadRangeButton.grid(row=8,column=2,padx=10,ipady=5)
 ##########################################
 #####        GUI MAIN SETTINGS       #####
@@ -1375,6 +1430,7 @@ mainWindow.bind("<F1>",help)
 mainWindow.bind("<F5>",simulator)
 mainWindow.bind("<F10>",about)
 mainWindow.bind("<Control_L><l>",masterReset)
+mainWindow.config(bg='#ebebeb')
 # Hint text event for Entries.
 # Sector A.
 pnumEntry.configure(fg='gray')
