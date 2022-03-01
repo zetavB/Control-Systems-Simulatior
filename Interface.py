@@ -80,8 +80,11 @@ position = tk.IntVar()
 # Sector F.
 valueAdjust = tk.IntVar()
 upperBoundValue = tk.DoubleVar()
+upperBoundValue.set(1.0)
 lowerBoundValue = tk.DoubleVar()
+lowerBoundValue.set(0.0)
 granularityValue = tk.DoubleVar()
+granularityValue.set(0.01)
 
 #################################################
 #######            FUNCTIONS              #######
@@ -330,6 +333,21 @@ def rampHintText(*args):
    rampEntry.configure(fg='black')
    rampEntry.delete(0,'end')
    rampEntry.unbind('<Button-1>',rampBind)
+
+def lowerBoundHintText(*args):
+   lowerBound.configure(fg='black')
+   lowerBound.delete(0,'end')
+   lowerBound.unbind('<Button-1>',lowerBoundBind)
+   
+def upperBoundHintText(*args):   
+   upperBound.configure(fg='black')
+   upperBound.delete(0,'end')
+   upperBound.unbind('<Button-1>',upperBoundBind)
+   
+def granularityHintText(*args):
+   granularity.configure(fg='black')
+   granularity.delete(0,'end')
+   granularity.unbind('<Button-1>',granularityBind)
 
 def stepOptionLock(*args):
    stepEntry.configure(state='normal')
@@ -731,6 +749,8 @@ def graph(etq,uin,t1,y1,t2=0,y2=0,t3=0,y3=0,t4=0,y4=0):
       ax1.plot(t1,uin,':m',label=labIn1)
       ax1.plot(t1,y1,'-b',label=lab1)
       ax1.legend()
+      units = timeUnits.get()
+      ax1.set_xlabel('Time ({})'.format(units));ax1.set_ylabel('Amplitude');ax1.set_title('Process Natural Response')
       canvas1.draw();canvas1.get_tk_widget().pack(padx=15)
       buttonNW.pack(side=tk.BOTTOM)
    elif etq == 'both': 
@@ -745,6 +765,11 @@ def graph(etq,uin,t1,y1,t2=0,y2=0,t3=0,y3=0,t4=0,y4=0):
       ax3.plot(t3,y3,'-b',label=lab3);ax3.legend()
       ax4.plot(t1,uin,':m',label=labIn2)
       ax4.plot(t4,y4,'-b',label=lab4);ax4.legend()
+      units = timeUnits.get()
+      ax1.set_xlabel('Time ({})'.format(units));ax1.set_ylabel('Amplitude');ax1.set_title('System Response (Servo)')
+      ax2.set_xlabel('Time ({})'.format(units));ax2.set_ylabel('Amplitude');ax2.set_title('Controller Response (Servo)')
+      ax3.set_xlabel('Time ({})'.format(units));ax3.set_ylabel('Amplitude');ax3.set_title('System Response(Regulatory)')
+      ax4.set_xlabel('Time ({})'.format(units));ax4.set_ylabel('Amplitude');ax4.set_title('Controller Response(Regulatory)')
       canvas1.draw();canvas1.get_tk_widget().pack(padx=15)
       canvas2.draw();canvas2.get_tk_widget().pack()
       canvas3.draw();canvas3.get_tk_widget().pack(padx=15)
@@ -754,13 +779,21 @@ def graph(etq,uin,t1,y1,t2=0,y2=0,t3=0,y3=0,t4=0,y4=0):
    else: 
       if etq == 'servo': lab1='yr(t)';lab2='ur(t)';labIn1='r(t)'
       else: lab1='yd(t)';lab2='ud(t)';labIn1='d(t)'
+      lab3 = 'y(t)'; labIn3 = 'r(t)'
       ax1.plot(t1,uin,':m',label=labIn1)
       ax1.plot(t1,y1,'-b',label=lab1);ax1.legend()
       ax2.plot(t1,uin,':m',label=labIn1)
       ax2.plot(t2,y2,'-b',label=lab2);ax2.legend()
+      ax3.plot(t1,uin,':m',label=labIn3)
+      ax3.plot(t3,y3,'-b',label=lab3);ax3.legend()
+      units = timeUnits.get()
+      ax1.set_xlabel('Time ({})'.format(units));ax1.set_ylabel('Amplitude');ax1.set_title('System Response')
+      ax2.set_xlabel('Time ({})'.format(units));ax2.set_ylabel('Amplitude');ax2.set_title('Controller Response')
+      ax3.set_xlabel('Time ({})'.format(units));ax3.set_ylabel('Amplitude');ax3.set_title('Process Natural Response')
       canvas1.draw();canvas1.get_tk_widget().pack(padx=15)
       canvas2.draw();canvas2.get_tk_widget().pack()
-      buttonNW.pack(side=tk.BOTTOM);buttonNE.pack(side=tk.BOTTOM)
+      canvas3.draw();canvas3.get_tk_widget().pack(padx=15)
+      buttonNW.pack(side=tk.BOTTOM);buttonNE.pack(side=tk.BOTTOM);buttonSW.pack(side=tk.BOTTOM)
 
 def simulator(*args):
    # GUI settings.
@@ -1104,27 +1137,35 @@ def simulatorRealtime(*args):
                  if mode == 'servo':
                     lab = 'servo'
                     if In == 'step':
+                       tP,yP,inP = response(P,magStep,timeIn,t,In)
                        tServo,yServo,inServo = response(MYR,magStep,timeIn,t,In)
                        tUR,yUR,inUR = response(UR,magStep,timeIn,t,In)
+                       indexes('P',In,inP,yP,tP,0)
                        indexes('MYR',In,inServo,yServo,tServo,yUR)
-                       graph(lab,inServo,tServo,yServo,tUR,yUR)
+                       graph(lab,inServo,tServo,yServo,tUR,yUR,tP,yP)
                     elif In == 'ramp':
+                       tP,yP,inP = response(P,magRamp,timeIn,t,In)
                        tServo,yServo,inServo = response(MYR,magRamp,timeIn,t,In)
                        tUR,yUR,inUR = response(UR,magRamp,timeIn,t,In)
+                       indexes('P',In,inP,yP,tP,0)
                        indexes('MYR',In,inServo,yServo,tServo,yUR)
-                       graph(lab,inServo,tServo,yServo,tUR,yUR)
+                       graph(lab,inServo,tServo,yServo,tUR,yUR,tP,yP)
                  elif mode == 'reg':
                     lab = 'reg'
                     if In == 'step':
+                       tP,yP,inP = response(P,magStep,timeIn,t,In)
                        tReg,yReg,inReg = response(MYD,magStep,timeIn,t,In)
                        tUD,yUD,inUD = response(UD,magStep,timeIn,t,In)
+                       indexes('P',In,inP,yP,tP,0)
                        indexes('MYD',In,inReg,yReg,tReg,yUD)
-                       graph(lab,inReg,tReg,yReg,tUD,yUD)
+                       graph(lab,inReg,tReg,yReg,tUD,yUD,tP,yP)
                     elif In == 'ramp':
+                       tP,yP,inP = response(P,magRamp,timeIn,t,In)
                        tReg,yReg,inReg = response(MYD,magRamp,timeIn,t,In)
                        tUD,yUD,inUD = response(UD,magRamp,timeIn,t,In)
+                       indexes('P',In,inP,yP,tP,0)
                        indexes('MYD',In,inReg,yReg,tReg,yUD)
-                       graph(lab,inReg,tReg,yReg,tUD,yUD)
+                       graph(lab,inReg,tReg,yReg,tUD,yUD,tP,yP)
                  elif mode == 'both':
                     lab = 'both'
                     if In == 'step':
@@ -1186,18 +1227,18 @@ helpmenu.add_command(label='About...',command=about,accelerator="F10")
 menubar.add_cascade(label='Help',menu=helpmenu)
 
 # Main window LabelFrames.
-sectorA = ttk.LabelFrame(mainWindow,text='General Data')
-sectorA.place(x=15,y=5,width=660)
-sectorB = ttk.LabelFrame(mainWindow,text='Simulation Data')
+sectorA = ttk.LabelFrame(mainWindow,text='3.General Data')
+sectorA.place(x=15,y=266,width=660)
+sectorB = ttk.LabelFrame(mainWindow,text='4.Simulation Data')
 sectorB.place(x=680,y=5,width=285) #,height=208
-sectorC = ttk.LabelFrame(mainWindow,text='Graphics')
-sectorC.place(x=15,y=453, height=260)
-sectorD = ttk.LabelFrame(mainWindow,text='Response Parameters')
+sectorC = ttk.LabelFrame(mainWindow,text='1.Graphics')
+sectorC.place(x=15,y=5, height=260)
+sectorD = ttk.LabelFrame(mainWindow,text='5.Response Parameters')
 sectorD.place(x=680,y=286,width=285,height =427)
-sectorE = ttk.LabelFrame(mainWindow,text='Simulation Results')
-sectorE.place(x=970,y=5,width=795,height=708)
-sectorF = ttk.LabelFrame(mainWindow,text='Range Adjustment')
-sectorF.place(x=263,y=453,width=412,height=260)
+sectorE = ttk.LabelFrame(mainWindow,text='6.Simulation Results')
+sectorE.place(x=970,y=5,width=805,height=708)
+sectorF = ttk.LabelFrame(mainWindow,text='2.Range Adjustment')
+sectorF.place(x=263,y=5,width=412,height=260)
 
 # Font Control
 Desired_font = tkinter.font.Font(size = 9, weight = "bold")
@@ -1374,15 +1415,19 @@ fig3 = Figure(figsize=(5,5),dpi=100)
 fig3, ax3 = plt.subplots()
 fig4 = Figure(figsize=(5,5),dpi=100)
 fig4, ax4 = plt.subplots()
+fig1.set_tight_layout(True)
+fig2.set_tight_layout(True)
+fig3.set_tight_layout(True)
+fig4.set_tight_layout(True)
 # FigureCanvas.
 canvas1 = FigureCanvasTkAgg(fig1,master=frameNW)
-canvas1.get_tk_widget().config(width=370,height=310)
+canvas1.get_tk_widget().config(width=375,height=310)
 canvas2 = FigureCanvasTkAgg(fig2,master=frameNE)
-canvas2.get_tk_widget().config(width=370,height=310)
+canvas2.get_tk_widget().config(width=375,height=310)
 canvas3 = FigureCanvasTkAgg(fig3,master=frameSW)
-canvas3.get_tk_widget().config(width=370,height=310)
+canvas3.get_tk_widget().config(width=375,height=310)
 canvas4 = FigureCanvasTkAgg(fig4,master=frameSE)
-canvas4.get_tk_widget().config(width=370,height=310)
+canvas4.get_tk_widget().config(width=375,height=310)
 # Pop-up window Figures.
 figI = Figure(figsize=(5,5),dpi=100)
 figI, axI = plt.subplots()
@@ -1448,11 +1493,17 @@ pdenEntry.configure(fg='gray')
 plantDelay.configure(fg='gray')
 cnumEntry.configure(fg='gray')
 cdenEntry.configure(fg='gray')
+lowerBound.configure(fg='gray')
+upperBound.configure(fg='gray')
+granularity.configure(fg='gray')
 pnumBind = pnumEntry.bind("<FocusIn>",pNumHintText)
 pdenBind = pdenEntry.bind("<FocusIn>",pDenHintText)
 delayBind = plantDelay.bind("<FocusIn>",delayHintText)
 cnumBind = cnumEntry.bind("<FocusIn>",cNumHintText)
 cdenBind = cdenEntry.bind("<FocusIn>",cDenHintText)
+lowerBoundBind = lowerBound.bind("<FocusIn>",lowerBoundHintText)
+upperBoundBind = upperBound.bind("<FocusIn>",upperBoundHintText)
+granularityBind = granularity.bind("<FocusIn>",granularityHintText)
 # Sector B.
 timeEntry.configure(fg='gray')
 tinEntry.configure(fg='gray')
