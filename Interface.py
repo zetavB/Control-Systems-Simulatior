@@ -535,9 +535,19 @@ def masterButtonRealtime():
       axI.plot(tP,yP,'-b',label='y(t)');axI.legend()
       axI.set_xlabel('Time ({})'.format(units));axI.set_ylabel('Amplitude')
    else:
-      numeratorC = [(alphaValue.get()*pValue.get()*dValue.get()*iValue.get()),pValue.get()*(dValue.get()*(alphaValue.get()+1)+iValue.get()),1]
+      if(controllerSelect.get() == "Standard"):
+        numeratorC = [(alphaValue.get()*pValue.get()*dValue.get()*iValue.get()),pValue.get()*(dValue.get()*(alphaValue.get()+1)+iValue.get()),1]
+      elif(controllerSelect.get() == "Parallel"):
+        numeratorC = [dValue.get()*(alphaValue.get()*pValue.get()+1), pValue.get()+(alphaValue.get()*iValue.get()*dValue.get()), iValue.get()]
+      elif(controllerSelect.get() == "Series"):
+        numeratorC = [pValue.get()*iValue.get()*dValue.get(), iValue.get()+dValue.get(), pValue.get()]
       numC = [float(x) for x in numeratorC]
-      denC = [(alphaValue.get()*dValue.get()),1]
+      if(controllerSelect.get() == "Standard"):
+        denC = [(alphaValue.get()*dValue.get()),1]
+      elif(controllerSelect.get() == "Parallel"):
+        denC = [alphaValue.get()*dValue.get(),1,0]
+      elif(controllerSelect.get() == "Series"):
+        denC = [alphaValue.get()*iValue.get()*dValue.get(), iValue.get(), 0]
       C = co.tf(numC,denC)
       MYR = (C*P)/(1+C*P)
       MYD = P/(1+C*P)
@@ -1135,7 +1145,7 @@ def simulatorRealtime(*args):
                        graph(lab,inServo,tServo,yServo,tUR,yUR,tReg,yReg,tUD,yUD)
               except ValueError:
               # Add context to error eg. Numerator degree greater than denominator degree
-                 tkinter.messagebox.showerror('Simulation Error', """SIMULATION ERROR: Servo control cannot be utilized with realtime simulation""")
+                 tkinter.messagebox.showerror('Simulation Error', """SIMULATION ERROR: Servo control cannot be utilized with realtime simulation using a standard PID""")
               # Closed Loop maximum sensitivity Ms.
               m,p,w = co.bode_plot(S,plot=False)  # This bode function is used to obtain the magnitude of S.
               Ms = max(m)  # Ms is the maximum value of the magnitude array.
@@ -1205,7 +1215,7 @@ tk.Label(sectorA,text='Numerator:').grid(row=2,column=3,padx=10,sticky=tk.W)
 tk.Label(sectorA,text='Denominator:').grid(row=3,column=3,padx=10,sticky=tk.W)
 tk.Label(sectorA,text='C(s) Transfer Function:').grid(row=9,column=3,columnspan=2,padx=10,sticky='nsew')
 
-tk.Label(sectorA,text='Proportional\n Gain:').grid(row=5,column=1,columnspan=1,padx=0,sticky='nsew')
+tk.Label(sectorA,text='DC\n Gain:').grid(row=5,column=1,columnspan=1,padx=0,sticky='nsew')
 tk.Label(sectorA,text='Natural\n Frequency :').grid(row=6,column=1,columnspan=1,padx=0,sticky='nsew')
 tk.Label(sectorA,text='Damping\n Factor:').grid(row=7,column=1,columnspan=1,padx=0,sticky='nsew')
 tk.Label(sectorA,text='Dead Time:').grid(row=8,column=1,columnspan=1,padx=0,sticky='nsew')
@@ -1402,7 +1412,7 @@ tk.Label(sectorF,text='Granularity:').grid(row=1,column=3,padx=10,sticky=tk.N)
 tk.Label(sectorF,text='Process:').grid(row=3,column=1,padx=10,sticky=tk.NW)
 tk.Label(sectorF,text='Controller:').grid(row=6,column=1,padx=10,sticky=tk.NW)
 # Radios
-plantPOption = tk.Radiobutton(sectorF, text='Proportional Gain',variable=valueAdjust,value=1)
+plantPOption = tk.Radiobutton(sectorF, text='DC Gain',variable=valueAdjust,value=1)
 plantPOption.grid(row=4,column=1,pady=5,padx=10,sticky='w')
 plantPOption.select()
 plantTauOption = tk.Radiobutton(sectorF, text='Nat. Freq.',variable=valueAdjust,value=2)
