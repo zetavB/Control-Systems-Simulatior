@@ -46,6 +46,10 @@ alphaValue = tk.DoubleVar()
 controllerSelect = tk.StringVar()
 types = ["Standard", "Series", "Parallel"]
 
+# Process selection
+processSelect = tk.StringVar()
+typesProc = ["Standard", "Alt."]
+
 # ReRun Prevention
 changeP = tk.IntVar(mainWindow, 0)
 changeI = tk.IntVar(mainWindow, 0)
@@ -276,6 +280,26 @@ def changeLabelsForPIDType(*args):
         contIOption.config(text="Ti′")
         contDOption.config(text="Td′")
         contAlphaOption.config(text="α′")
+
+def changeLabelsForProcessType(*args):
+    if(processSelect.get() == "Standard"):
+        procPLabel.config(text="DC Gain")
+        procFreqLabel.config(text="Natural\nFrequency")
+        procDampLabel.config(text="Damping\nFactor")
+        procDeadLabel.config(text="Dead Time")
+        plantPOption.config(text="DC Gain")
+        plantTauOption.config(text="Nat. Freq.")
+        plantZetaOption.config(text="Damping Factor")
+        plantDeadOption.config(text="Dead Time")
+    elif(processSelect.get() == "Alt."):
+        procPLabel.config(text="DC Gain")
+        procFreqLabel.config(text="Tau")
+        procDampLabel.config(text="α")
+        procDeadLabel.config(text="Dead Time")
+        plantPOption.config(text="DC Gain")
+        plantTauOption.config(text="Tau")
+        plantZetaOption.config(text="α")
+        plantDeadOption.config(text="Dead Time")
   
 def stopRealtime(*args):
     realtimeExecute.set(0)
@@ -1054,7 +1078,10 @@ def simulatorRealtime(*args):
 
            # Process data.
            try:
-              numeratorP = [plantPValue.get()*(plantTauValue.get()**2)]
+              if(processSelect.get() == "Standard"):
+                numeratorP = [plantPValue.get()*(plantTauValue.get()**2)]
+              else:
+                numeratorP = [plantPValue.get()]
               numP = [float(x) for x in numeratorP]
            except ValueError:
               pnumEntry.focus()
@@ -1062,7 +1089,10 @@ def simulatorRealtime(*args):
         Please enter valid numerical data using the format [a,b,c].""")
 
            try:
-              denominatorP = [1,(2*plantTauValue.get()*plantZetaValue.get()),plantTauValue.get()**2]
+              if(processSelect.get() == "Standard"):
+                denominatorP = [1,(2*plantTauValue.get()*plantZetaValue.get()),plantTauValue.get()**2]
+              else:
+                denominatorP = [plantZetaValue.get()*plantTauValue.get()**2,plantTauValue.get()*(plantZetaValue.get()+1),1]
               denP = [float(x) for x in denominatorP]
               A = co.tf(numP,denP)
            except ValueError:
@@ -1256,10 +1286,14 @@ tk.Label(sectorA,text='Numerator:').grid(row=2,column=3,padx=10,sticky=tk.W)
 tk.Label(sectorA,text='Denominator:').grid(row=3,column=3,padx=10,sticky=tk.W)
 tk.Label(sectorA,text='C(s) Transfer Function:').grid(row=9,column=3,columnspan=2,padx=10,sticky='nsew')
 
-tk.Label(sectorA,text='DC\n Gain:').grid(row=5,column=1,columnspan=1,padx=0,sticky='nsew')
-tk.Label(sectorA,text='Natural\n Frequency :').grid(row=6,column=1,columnspan=1,padx=0,sticky='nsew')
-tk.Label(sectorA,text='Damping\n Factor:').grid(row=7,column=1,columnspan=1,padx=0,sticky='nsew')
-tk.Label(sectorA,text='Dead Time:').grid(row=8,column=1,columnspan=1,padx=0,sticky='nsew')
+procPLabel = tk.Label(sectorA,text='DC\n Gain:')
+procPLabel.grid(row=5,column=1,columnspan=1,padx=0,sticky='nsew')
+procFreqLabel = tk.Label(sectorA,text='Natural\n Frequency :')
+procFreqLabel.grid(row=6,column=1,columnspan=1,padx=0,sticky='nsew')
+procDampLabel = tk.Label(sectorA,text='Damping\n Factor:')
+procDampLabel.grid(row=7,column=1,columnspan=1,padx=0,sticky='nsew')
+procDeadLabel = tk.Label(sectorA,text='Dead Time:')
+procDeadLabel.grid(row=8,column=1,columnspan=1,padx=0,sticky='nsew')
 
 propLabel = tk.Label(sectorA,text='Kp:')
 propLabel.grid(row=5,column=3,columnspan=1,padx=0,sticky='nsew')
@@ -1270,7 +1304,9 @@ derLabel.grid(row=7,column=3,columnspan=1,padx=0,sticky='nsew')
 alphaLabel = tk.Label(sectorA,text='α:')
 alphaLabel.grid(row=8,column=3,columnspan=1,padx=0,sticky='nsew')
 typeLabel = tk.Label(sectorA,text='PID Type:')
-typeLabel.place(x=573,y=15)
+typeLabel.place(x=575,y=55)
+typeLabelProc = tk.Label(sectorA,text='Process Type:')
+typeLabelProc.place(x=573,y=15)
 # Entries.
 pnumEntry = tk.Entry(sectorA,textvariable=plantNum)
 pnumEntry.grid(row=2,column=2,padx=10,pady=5)
@@ -1311,7 +1347,10 @@ tk.Label(frameB,textvariable=eqC,anchor='center').pack()  # Label for C(s) TF.
 # Frames.
 controllerSelect.set(types[0])
 pidTypeSelect = ttk.OptionMenu(sectorA, controllerSelect, types[0], *types, command=changeLabelsForPIDType)
-pidTypeSelect.place(x=575,y=35, width=80)
+pidTypeSelect.place(x=575,y=75, width=80)
+processSelect.set(typesProc[0])
+processTypeSelect = ttk.OptionMenu(sectorA, processSelect, typesProc[0], *typesProc, command=changeLabelsForProcessType)
+processTypeSelect.place(x=575,y=35, width=80)
 # info = tk.Frame(mainWindow)
 # info.place(x=595,y=55)
 # sign = tk.Button(info,bitmap="question",command=closedLoop)
