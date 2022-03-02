@@ -1525,6 +1525,7 @@ mainWindow.bind("<F5>",simulator)
 mainWindow.bind("<F10>",about)
 mainWindow.bind("<Control_L><l>",masterReset)
 mainWindow.config(bg='#ebebeb')
+mainWindow.protocol('WM_DELETE_WINDOW', close)
 # Hint text event for Entries.
 # Sector A.
 pnumEntry.configure(fg='gray')
