@@ -1361,9 +1361,9 @@ pResetButton.grid(row=11,column=1,columnspan=2,pady=10)
 cResetButton = tk.Button(sectorA,text='Reset Values',bg='#829ce3',command=resetController, font = buttonFont)
 cResetButton.grid(row=11,column=3,columnspan=2,pady=10)
 #Images.
-img = Image.open('./resources/help.png')
-resized_image= img.resize((570,250), Image.ANTIALIAS)
-new_image= ImageTk.PhotoImage(resized_image)
+#img = Image.open('./resources/help.png')
+#resized_image= img.resize((570,250), Image.ANTIALIAS)
+#new_image= ImageTk.PhotoImage(resized_image)
 
 
 # Sector B widgets.
