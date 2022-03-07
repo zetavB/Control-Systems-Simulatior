@@ -25,7 +25,20 @@ from matplotlib.figure import Figure
 mainWindow = tk.Tk()
 width= mainWindow.winfo_screenwidth() 
 height= mainWindow.winfo_screenheight()
+scalingFactor = ((width*height)/(1920*1080)) * 1.5
+if(scalingFactor < 1.28):
+    mainWindow.tk.call('tk', 'scaling', scalingFactor)
+print(scalingFactor)
 mainWindow.geometry("%dx%d" % (width, height))
+#mainWindow.geometry("")
+
+# mainWindow.grid_columnconfigure(0,weight=1)
+# mainWindow.grid_columnconfigure(1,weight=1)
+# mainWindow.grid_columnconfigure(2,weight=1)
+# mainWindow.grid_columnconfigure(3,weight=1)
+# mainWindow.grid_rowconfigure(0,weight=1)
+# mainWindow.grid_rowconfigure(1,weight=1)
+
 mainWindow.title('Control Systems Simulator')
 
 ######################################################
@@ -218,7 +231,10 @@ def loadRange(*args):
     elif(valueAdjust.get() == 2):
         barraPlantTs.configure(from_ = lowerBoundValue.get(), to = upperBoundValue.get(), resolution = granularityValue.get())
     elif(valueAdjust.get() == 3):
-        barraPlantZeta.configure(from_ = lowerBoundValue.get(), to = upperBoundValue.get(), resolution = granularityValue.get())
+        if(processSelect.get() == 'Alt.'):
+            barraPlantZeta.configure(from_ = 0, to = 1, resolution = granularityValue.get())
+        else:
+            barraPlantZeta.configure(from_ = lowerBoundValue.get(), to = upperBoundValue.get(), resolution = granularityValue.get())
     elif(valueAdjust.get() == 4):
         barraPlantTheta.configure(from_ = lowerBoundValue.get(), to = upperBoundValue.get(), resolution = granularityValue.get())
     elif(valueAdjust.get() == 5):
@@ -293,12 +309,12 @@ def changeLabelsForProcessType(*args):
         plantDeadOption.config(text="Dead Time")
     elif(processSelect.get() == "Alt."):
         procPLabel.config(text="DC Gain")
-        procFreqLabel.config(text="Tau")
-        procDampLabel.config(text="α")
+        procFreqLabel.config(text="Time\n Constant")
+        procDampLabel.config(text="a")
         procDeadLabel.config(text="Dead Time")
         plantPOption.config(text="DC Gain")
-        plantTauOption.config(text="Tau")
-        plantZetaOption.config(text="α")
+        plantTauOption.config(text="Time\n Constant")
+        plantZetaOption.config(text="a")
         plantDeadOption.config(text="Dead Time")
   
 def stopRealtime(*args):
@@ -795,9 +811,9 @@ def graph(etq,uin,t1,y1,t2=0,y2=0,t3=0,y3=0,t4=0,y4=0):
       ax3.set_xlabel('Time ({})'.format(units));ax3.set_ylabel('Amplitude');ax3.set_title('System Response(Regulatory)')
       ax4.set_xlabel('Time ({})'.format(units));ax4.set_ylabel('Amplitude');ax4.set_title('Controller Response(Regulatory)')
       canvas1.draw();canvas1.get_tk_widget().pack(padx=15)
-      canvas2.draw();canvas2.get_tk_widget().pack()
+      canvas2.draw();canvas2.get_tk_widget().pack(padx=15)
       canvas3.draw();canvas3.get_tk_widget().pack(padx=15)
-      canvas4.draw();canvas4.get_tk_widget().pack()
+      canvas4.draw();canvas4.get_tk_widget().pack(padx=15)
       buttonNW.pack(side=tk.BOTTOM);buttonNE.pack(side=tk.BOTTOM)
       buttonSW.pack(side=tk.BOTTOM);buttonSE.pack(side=tk.BOTTOM)
    else: 
@@ -815,7 +831,7 @@ def graph(etq,uin,t1,y1,t2=0,y2=0,t3=0,y3=0,t4=0,y4=0):
       ax2.set_xlabel('Time ({})'.format(units));ax2.set_ylabel('Amplitude');ax2.set_title('Controller Response')
       ax3.set_xlabel('Time ({})'.format(units));ax3.set_ylabel('Amplitude');ax3.set_title('Process Natural Response')
       canvas1.draw();canvas1.get_tk_widget().pack(padx=15)
-      canvas2.draw();canvas2.get_tk_widget().pack()
+      canvas2.draw();canvas2.get_tk_widget().pack(padx=15)
       canvas3.draw();canvas3.get_tk_widget().pack(padx=15)
       buttonNW.pack(side=tk.BOTTOM);buttonNE.pack(side=tk.BOTTOM);buttonSW.pack(side=tk.BOTTOM)
 
@@ -1130,7 +1146,8 @@ def simulatorRealtime(*args):
               # Controller data.
               try:
                  if(controllerSelect.get() == "Standard"):
-                    numeratorC = [(alphaValue.get()*pValue.get()*dValue.get()*iValue.get()),pValue.get()*(dValue.get()*(alphaValue.get()+1)+iValue.get()),1]
+                    numeratorC = [((alphaValue.get()+1)*pValue.get()*dValue.get()*iValue.get()),pValue.get()*((alphaValue.get()*dValue.get()+iValue.get())*pValue.get()),pValue.get()]
+                    #numeratorC = [(alphaValue.get()*pValue.get()*dValue.get()*iValue.get()),pValue.get()*(dValue.get()*(alphaValue.get()+1)+iValue.get()),1]
                  elif(controllerSelect.get() == "Parallel"):
                     numeratorC = [dValue.get()*(alphaValue.get()*pValue.get()+1), pValue.get()+(alphaValue.get()*iValue.get()*dValue.get()), iValue.get()]
                  elif(controllerSelect.get() == "Series"):
@@ -1143,7 +1160,8 @@ def simulatorRealtime(*args):
               
               try:
                  if(controllerSelect.get() == "Standard"):
-                    denC = [(alphaValue.get()*dValue.get()),1]
+                    denC = [(alphaValue.get()*dValue.get()*iValue.get()),iValue.get(),0]
+                    #denC = [(alphaValue.get()*dValue.get()),1]
                  elif(controllerSelect.get() == "Parallel"):
                     denC = [alphaValue.get()*dValue.get(),1,0]
                  elif(controllerSelect.get() == "Series"):
@@ -1235,7 +1253,11 @@ def simulatorRealtime(*args):
     changeI.set(0)
     changeD.set(0)
     changeSlide.set(0)
-    canvas1.get_tk_widget().update_idletasks       
+
+    canvas1.get_tk_widget().update_idletasks   
+    canvas2.get_tk_widget().update_idletasks
+    canvas3.get_tk_widget().update_idletasks   
+    canvas4.get_tk_widget().update_idletasks 
     mainWindow.after(1, simulatorRealtime)
     
 
@@ -1258,17 +1280,33 @@ menubar.add_cascade(label='Help',menu=helpmenu)
 
 # Main window LabelFrames.
 sectorA = ttk.LabelFrame(mainWindow,text='3.General Data')
-sectorA.place(x=15,y=266,width=660)
+#sectorA.place(x=15,y=266,width=660)
+sectorA.grid(column=0, sticky="NSEW", row=1,columnspan=2)
+
+
 sectorB = ttk.LabelFrame(mainWindow,text='4.Simulation Data')
-sectorB.place(x=680,y=5,width=285) #,height=208
-sectorC = ttk.LabelFrame(mainWindow,text='1.Graphics')
-sectorC.place(x=15,y=5, height=260)
+#sectorB.place(x=680,y=5,width=285) #,height=208
+sectorB.grid(column=2, sticky="NSEW", row=0)
+
+
+sectorC = ttk.LabelFrame(mainWindow,text='1.Control Loop Operation')
+#sectorC.place(x=15,y=5, height=260)
+sectorC.grid(column=0, sticky="NSEW", row=0)
+
+
 sectorD = ttk.LabelFrame(mainWindow,text='5.Response Parameters')
-sectorD.place(x=680,y=286,width=285,height =427)
+#sectorD.place(x=680,y=286,width=285,height =427)
+sectorD.grid(column=2, sticky="NSEW", row=1)
+
+
 sectorE = ttk.LabelFrame(mainWindow,text='6.Simulation Results')
-sectorE.place(x=970,y=5,width=805,height=708)
+#sectorE.place(x=970,y=5,width=805,height=708)
+sectorE.grid(column=3, row=0, sticky="NSEW", rowspan=3)
+
+
 sectorF = ttk.LabelFrame(mainWindow,text='2.Range Adjustment')
-sectorF.place(x=263,y=5,width=412,height=260)
+#sectorF.place(x=263,y=5,width=412,height=260)
+sectorF.grid(column=1, sticky="NSEW", row=0)
 
 # Font Control
 Desired_font = tkinter.font.Font(size = 9, weight = "bold")
@@ -1276,12 +1314,12 @@ buttonFont = tkinter.font.Font(size = 9, weight = "bold")
 
 # Sector A widgets.
 # Labels.
-tk.Label(sectorA,text='Process Data:', font=Desired_font).grid(row=1,column=1,padx=0,sticky=tk.W)
+tk.Label(sectorA,text='Process\n Parameters:', font=Desired_font).grid(row=1,column=1,padx=0,sticky=tk.W)
 tk.Label(sectorA,text='Numerator:').grid(row=2,column=1,padx=0,sticky=tk.W)
 tk.Label(sectorA,text='Denominator:').grid(row=3,column=1,padx=0,sticky=tk.W)
 tk.Label(sectorA,text='Dead time:').grid(row=4,column=1,padx=0,sticky=tk.W)
 tk.Label(sectorA,text='P(s) Transfer Function:').grid(row=9,column=1,columnspan=2,padx=0,sticky='nsew')
-tk.Label(sectorA,text='Controller Data:', font=Desired_font).grid(row=1,column=3,padx=10,sticky=tk.W)
+tk.Label(sectorA,text='Controller\n Parameters:', font=Desired_font).grid(row=1,column=3,padx=10,sticky=tk.W)
 tk.Label(sectorA,text='Numerator:').grid(row=2,column=3,padx=10,sticky=tk.W)
 tk.Label(sectorA,text='Denominator:').grid(row=3,column=3,padx=10,sticky=tk.W)
 tk.Label(sectorA,text='C(s) Transfer Function:').grid(row=9,column=3,columnspan=2,padx=10,sticky='nsew')
@@ -1304,9 +1342,9 @@ derLabel.grid(row=7,column=3,columnspan=1,padx=0,sticky='nsew')
 alphaLabel = tk.Label(sectorA,text='α:')
 alphaLabel.grid(row=8,column=3,columnspan=1,padx=0,sticky='nsew')
 typeLabel = tk.Label(sectorA,text='PID Type:')
-typeLabel.place(x=575,y=55)
+typeLabel.grid(row=1,column=5,padx=5)
 typeLabelProc = tk.Label(sectorA,text='Process Type:')
-typeLabelProc.place(x=573,y=15)
+typeLabelProc.grid(row=3,column=5,padx=5)
 # Entries.
 pnumEntry = tk.Entry(sectorA,textvariable=plantNum)
 pnumEntry.grid(row=2,column=2,padx=10,pady=5)
@@ -1323,7 +1361,7 @@ barraPlantP = tk.Scale(sectorA, from_=0, to=100, resolution=0.1, length=200, ori
 barraPlantP.grid(row=5,column=2,pady=2)
 barraPlantTs = tk.Scale(sectorA, from_=0, to=100, resolution=0.1, length=200, orient='horizontal',command=sliderChanged, variable=plantTauValue)
 barraPlantTs.grid(row=6,column=2,pady=2)
-barraPlantZeta = tk.Scale(sectorA, from_=0, to=100, resolution=0.1, length=200, orient='horizontal',command=sliderChanged, variable=plantZetaValue)
+barraPlantZeta = tk.Scale(sectorA, from_=0, to=1, resolution=0.1, length=200, orient='horizontal',command=sliderChanged, variable=plantZetaValue)
 barraPlantZeta.grid(row=7,column=2,pady=2)
 barraPlantTheta = tk.Scale(sectorA, from_=0, to=100, resolution=0.1, length=200, orient='horizontal',command=sliderChanged, variable=plantDeadValue)
 barraPlantTheta.grid(row=8,column=2,pady=2)
@@ -1347,10 +1385,10 @@ tk.Label(frameB,textvariable=eqC,anchor='center').pack()  # Label for C(s) TF.
 # Frames.
 controllerSelect.set(types[0])
 pidTypeSelect = ttk.OptionMenu(sectorA, controllerSelect, types[0], *types, command=changeLabelsForPIDType)
-pidTypeSelect.place(x=575,y=75, width=80)
+pidTypeSelect.grid(row=2,column=5,padx=5)
 processSelect.set(typesProc[0])
 processTypeSelect = ttk.OptionMenu(sectorA, processSelect, typesProc[0], *typesProc, command=changeLabelsForProcessType)
-processTypeSelect.place(x=575,y=35, width=80)
+processTypeSelect.grid(row=4,column=5,padx=5)
 # info = tk.Frame(mainWindow)
 # info.place(x=595,y=55)
 # sign = tk.Button(info,bitmap="question",command=closedLoop)
