@@ -27,6 +27,9 @@ width= mainWindow.winfo_screenwidth()
 height= mainWindow.winfo_screenheight()
 scalingFactor = ((width*height)/(1920*1080)) * 1.5
 if(scalingFactor < 1.28):
+    default_font = tk.font.nametofont("TkDefaultFont")
+    default_font.configure(size=7)
+    mainWindow.option_add("*Font", default_font)
     mainWindow.tk.call('tk', 'scaling', scalingFactor)
 print(scalingFactor)
 mainWindow.geometry("%dx%d" % (width, height))
@@ -783,14 +786,19 @@ def graph(etq,uin,t1,y1,t2=0,y2=0,t3=0,y3=0,t4=0,y4=0):
    # Plots the system simulations using Matplotlib.
    # Automatically sets the corresponding labels according to the control mode used.
    # Plots the system response (or reaction curve) and control signals in separate Figures.
-   # Returns: None      
+   # Returns: None
    if etq == 'Process':
       lab1 = 'y(t)'; labIn1 = 'r(t)'
       ax1.plot(t1,uin,':m',label=labIn1)
       ax1.plot(t1,y1,'-b',label=lab1)
       ax1.legend()
       units = timeUnits.get()
-      ax1.set_xlabel('Time ({})'.format(units));ax1.set_ylabel('Amplitude');ax1.set_title('Process Natural Response')
+      if(scalingFactor < 1.28):
+           plt.rcParams.update({'font.size': 7})
+           ax1.set_xlabel('Time ({})'.format(units), fontsize=7);ax1.set_ylabel('Amplitude', fontsize=7);ax1.set_title('Process Natural Response', fontsize=7)
+           ax1.tick_params(axis='both', which='major', labelsize=7)
+      else:
+           ax1.set_xlabel('Time ({})'.format(units));ax1.set_ylabel('Amplitude');ax1.set_title('Process Natural Response')
       canvas1.draw();canvas1.get_tk_widget().pack(padx=15)
       buttonNW.pack(side=tk.BOTTOM)
    elif etq == 'both': 
@@ -806,10 +814,22 @@ def graph(etq,uin,t1,y1,t2=0,y2=0,t3=0,y3=0,t4=0,y4=0):
       ax4.plot(t1,uin,':m',label=labIn2)
       ax4.plot(t4,y4,'-b',label=lab4);ax4.legend()
       units = timeUnits.get()
-      ax1.set_xlabel('Time ({})'.format(units));ax1.set_ylabel('Amplitude');ax1.set_title('System Response (Servo)')
-      ax2.set_xlabel('Time ({})'.format(units));ax2.set_ylabel('Amplitude');ax2.set_title('Controller Response (Servo)')
-      ax3.set_xlabel('Time ({})'.format(units));ax3.set_ylabel('Amplitude');ax3.set_title('System Response(Regulatory)')
-      ax4.set_xlabel('Time ({})'.format(units));ax4.set_ylabel('Amplitude');ax4.set_title('Controller Response(Regulatory)')
+      if(scalingFactor < 1.28):
+            plt.rcParams.update({'font.size': 7})
+            ax1.set_xlabel('Time ({})'.format(units), fontsize=7);ax1.set_ylabel('Amplitude', fontsize=7);ax1.set_title('System Response (Servo)', fontsize=7)
+            ax2.set_xlabel('Time ({})'.format(units), fontsize=7);ax2.set_ylabel('Amplitude', fontsize=7);ax2.set_title('Controller Response (Servo)', fontsize=7)
+            ax3.set_xlabel('Time ({})'.format(units), fontsize=7);ax3.set_ylabel('Amplitude', fontsize=7);ax3.set_title('System Response(Regulatory)', fontsize=7)
+            ax4.set_xlabel('Time ({})'.format(units), fontsize=7);ax4.set_ylabel('Amplitude', fontsize=7);ax4.set_title('Controller Response(Regulatory)', fontsize=7)
+            ax1.tick_params(axis='both', which='major', labelsize=7)
+            ax2.tick_params(axis='both', which='major', labelsize=7)
+            ax3.tick_params(axis='both', which='major', labelsize=7)
+            ax4.tick_params(axis='both', which='major', labelsize=7)
+      else:
+            ax1.set_xlabel('Time ({})'.format(units));ax1.set_ylabel('Amplitude');ax1.set_title('System Response (Servo)')
+            ax2.set_xlabel('Time ({})'.format(units));ax2.set_ylabel('Amplitude');ax2.set_title('Controller Response (Servo)')
+            ax3.set_xlabel('Time ({})'.format(units));ax3.set_ylabel('Amplitude');ax3.set_title('System Response(Regulatory)')
+            ax4.set_xlabel('Time ({})'.format(units));ax4.set_ylabel('Amplitude');ax4.set_title('Controller Response(Regulatory)')
+
       canvas1.draw();canvas1.get_tk_widget().pack(padx=15)
       canvas2.draw();canvas2.get_tk_widget().pack(padx=15)
       canvas3.draw();canvas3.get_tk_widget().pack(padx=15)
@@ -827,9 +847,18 @@ def graph(etq,uin,t1,y1,t2=0,y2=0,t3=0,y3=0,t4=0,y4=0):
       ax3.plot(t1,uin,':m',label=labIn3)
       ax3.plot(t3,y3,'-b',label=lab3);ax3.legend()
       units = timeUnits.get()
-      ax1.set_xlabel('Time ({})'.format(units));ax1.set_ylabel('Amplitude');ax1.set_title('System Response')
-      ax2.set_xlabel('Time ({})'.format(units));ax2.set_ylabel('Amplitude');ax2.set_title('Controller Response')
-      ax3.set_xlabel('Time ({})'.format(units));ax3.set_ylabel('Amplitude');ax3.set_title('Process Natural Response')
+      if(scalingFactor < 1.28):
+            plt.rcParams.update({'font.size': 7})
+            ax1.set_xlabel('Time ({})'.format(units), fontsize=7);ax1.set_ylabel('Amplitude', fontsize=7);ax1.set_title('System Response', fontsize=7)
+            ax2.set_xlabel('Time ({})'.format(units), fontsize=7);ax2.set_ylabel('Amplitude', fontsize=7);ax2.set_title('Controller Response', fontsize=7)
+            ax3.set_xlabel('Time ({})'.format(units), fontsize=7);ax3.set_ylabel('Amplitude', fontsize=7);ax3.set_title('Process Natural Response', fontsize=7)
+            ax1.tick_params(axis='both', which='major', labelsize=7)
+            ax2.tick_params(axis='both', which='major', labelsize=7)
+            ax3.tick_params(axis='both', which='major', labelsize=7)
+      else:
+            ax1.set_xlabel('Time ({})'.format(units));ax1.set_ylabel('Amplitude');ax1.set_title('System Response')
+            ax2.set_xlabel('Time ({})'.format(units));ax2.set_ylabel('Amplitude');ax2.set_title('Controller Response')
+            ax3.set_xlabel('Time ({})'.format(units));ax3.set_ylabel('Amplitude');ax3.set_title('Process Natural Response')
       canvas1.draw();canvas1.get_tk_widget().pack(padx=15)
       canvas2.draw();canvas2.get_tk_widget().pack(padx=15)
       canvas3.draw();canvas3.get_tk_widget().pack(padx=15)
@@ -1311,6 +1340,9 @@ sectorF.grid(column=1, sticky="NSEW", row=0)
 # Font Control
 Desired_font = tkinter.font.Font(size = 9, weight = "bold")
 buttonFont = tkinter.font.Font(size = 9, weight = "bold")
+if(scalingFactor < 1.28):
+    Desired_font = default_font
+    buttonFont = default_font
 
 # Sector A widgets.
 # Labels.
@@ -1357,23 +1389,42 @@ cnumEntry.grid(row=2,column=4,padx=10)
 cdenEntry = tk.Entry(sectorA,textvariable=contDen)
 cdenEntry.grid(row=3,column=4)
 # Sliders
-barraPlantP = tk.Scale(sectorA, from_=0, to=100, resolution=0.1, length=200, orient='horizontal',command=sliderChanged, variable=plantPValue)
-barraPlantP.grid(row=5,column=2,pady=2)
-barraPlantTs = tk.Scale(sectorA, from_=0, to=100, resolution=0.1, length=200, orient='horizontal',command=sliderChanged, variable=plantTauValue)
-barraPlantTs.grid(row=6,column=2,pady=2)
-barraPlantZeta = tk.Scale(sectorA, from_=0, to=1, resolution=0.1, length=200, orient='horizontal',command=sliderChanged, variable=plantZetaValue)
-barraPlantZeta.grid(row=7,column=2,pady=2)
-barraPlantTheta = tk.Scale(sectorA, from_=0, to=100, resolution=0.1, length=200, orient='horizontal',command=sliderChanged, variable=plantDeadValue)
-barraPlantTheta.grid(row=8,column=2,pady=2)
+if(scalingFactor < 1.28):
+    barraPlantP = tk.Scale(sectorA, from_=0, to=100, resolution=0.1, length=100, orient='horizontal',command=sliderChanged, variable=plantPValue)
+    barraPlantP.grid(row=5,column=2,pady=2)
+    barraPlantTs = tk.Scale(sectorA, from_=0, to=100, resolution=0.1, length=100, orient='horizontal',command=sliderChanged, variable=plantTauValue)
+    barraPlantTs.grid(row=6,column=2,pady=2)
+    barraPlantZeta = tk.Scale(sectorA, from_=0, to=1, resolution=0.1, length=100, orient='horizontal',command=sliderChanged, variable=plantZetaValue)
+    barraPlantZeta.grid(row=7,column=2,pady=2)
+    barraPlantTheta = tk.Scale(sectorA, from_=0, to=100, resolution=0.1, length=100, orient='horizontal',command=sliderChanged, variable=plantDeadValue)
+    barraPlantTheta.grid(row=8,column=2,pady=2)
 
-barraP = tk.Scale(sectorA, from_=0, to=100, resolution=0.1, length=200, orient='horizontal',command=pSlider_changed, variable=pValue)
-barraP.grid(row=5,column=4,pady=3)
-barraI = tk.Scale(sectorA, from_=0, to=100, resolution=0.1, length=200, orient='horizontal',command=iSlider_changed, variable=iValue)
-barraI.grid(row=6,column=4,pady=3)
-barraD = tk.Scale(sectorA, from_=0, to=100, resolution=0.1, length=200, orient='horizontal',command=dSlider_changed, variable=dValue)
-barraD.grid(row=7,column=4,pady=2)
-barraAlpha = tk.Scale(sectorA, from_=0, to=100, resolution=0.1, length=200, orient='horizontal',command=sliderChanged, variable=alphaValue)
-barraAlpha.grid(row=8,column=4,pady=2)
+    barraP = tk.Scale(sectorA, from_=0, to=100, resolution=0.1, length=100, orient='horizontal',command=pSlider_changed, variable=pValue)
+    barraP.grid(row=5,column=4,pady=3)
+    barraI = tk.Scale(sectorA, from_=0, to=100, resolution=0.1, length=100, orient='horizontal',command=iSlider_changed, variable=iValue)
+    barraI.grid(row=6,column=4,pady=3)
+    barraD = tk.Scale(sectorA, from_=0, to=100, resolution=0.1, length=100, orient='horizontal',command=dSlider_changed, variable=dValue)
+    barraD.grid(row=7,column=4,pady=2)
+    barraAlpha = tk.Scale(sectorA, from_=0, to=100, resolution=0.1, length=100, orient='horizontal',command=sliderChanged, variable=alphaValue)
+    barraAlpha.grid(row=8,column=4,pady=2)
+else:
+    barraPlantP = tk.Scale(sectorA, from_=0, to=100, resolution=0.1, length=200, orient='horizontal',command=sliderChanged, variable=plantPValue)
+    barraPlantP.grid(row=5,column=2,pady=2)
+    barraPlantTs = tk.Scale(sectorA, from_=0, to=100, resolution=0.1, length=200, orient='horizontal',command=sliderChanged, variable=plantTauValue)
+    barraPlantTs.grid(row=6,column=2,pady=2)
+    barraPlantZeta = tk.Scale(sectorA, from_=0, to=1, resolution=0.1, length=200, orient='horizontal',command=sliderChanged, variable=plantZetaValue)
+    barraPlantZeta.grid(row=7,column=2,pady=2)
+    barraPlantTheta = tk.Scale(sectorA, from_=0, to=100, resolution=0.1, length=200, orient='horizontal',command=sliderChanged, variable=plantDeadValue)
+    barraPlantTheta.grid(row=8,column=2,pady=2)
+
+    barraP = tk.Scale(sectorA, from_=0, to=100, resolution=0.1, length=200, orient='horizontal',command=pSlider_changed, variable=pValue)
+    barraP.grid(row=5,column=4,pady=3)
+    barraI = tk.Scale(sectorA, from_=0, to=100, resolution=0.1, length=200, orient='horizontal',command=iSlider_changed, variable=iValue)
+    barraI.grid(row=6,column=4,pady=3)
+    barraD = tk.Scale(sectorA, from_=0, to=100, resolution=0.1, length=200, orient='horizontal',command=dSlider_changed, variable=dValue)
+    barraD.grid(row=7,column=4,pady=2)
+    barraAlpha = tk.Scale(sectorA, from_=0, to=100, resolution=0.1, length=200, orient='horizontal',command=sliderChanged, variable=alphaValue)
+    barraAlpha.grid(row=8,column=4,pady=2)
 # Frames.
 frameA = tk.Frame(sectorA)  # Frame containing the TF of P(s).
 frameA.grid(row=10,column=1,columnspan=2,sticky='ns',padx=10)
@@ -1497,14 +1548,25 @@ fig2.set_tight_layout(True)
 fig3.set_tight_layout(True)
 fig4.set_tight_layout(True)
 # FigureCanvas.
-canvas1 = FigureCanvasTkAgg(fig1,master=frameNW)
-canvas1.get_tk_widget().config(width=375,height=310)
-canvas2 = FigureCanvasTkAgg(fig2,master=frameNE)
-canvas2.get_tk_widget().config(width=375,height=310)
-canvas3 = FigureCanvasTkAgg(fig3,master=frameSW)
-canvas3.get_tk_widget().config(width=375,height=310)
-canvas4 = FigureCanvasTkAgg(fig4,master=frameSE)
-canvas4.get_tk_widget().config(width=375,height=310)
+if(scalingFactor < 1.28):
+    canvas1 = FigureCanvasTkAgg(fig1,master=frameNW)
+    canvas1.get_tk_widget().config(width=scalingFactor*350*0.7,height=scalingFactor*310*0.7)
+    canvas2 = FigureCanvasTkAgg(fig2,master=frameNE)
+    canvas2.get_tk_widget().config(width=scalingFactor*350*0.7,height=scalingFactor*310*0.7)
+    canvas3 = FigureCanvasTkAgg(fig3,master=frameSW)
+    canvas3.get_tk_widget().config(width=scalingFactor*350*0.7,height=scalingFactor*310*0.7)
+    canvas4 = FigureCanvasTkAgg(fig4,master=frameSE)
+    canvas4.get_tk_widget().config(width=scalingFactor*350*0.7,height=scalingFactor*310*0.7)
+else:
+    canvas1 = FigureCanvasTkAgg(fig1,master=frameNW)
+    canvas1.get_tk_widget().config(width=330,height=310)
+    canvas2 = FigureCanvasTkAgg(fig2,master=frameNE)
+    canvas2.get_tk_widget().config(width=330,height=310)
+    canvas3 = FigureCanvasTkAgg(fig3,master=frameSW)
+    canvas3.get_tk_widget().config(width=330,height=310)
+    canvas4 = FigureCanvasTkAgg(fig4,master=frameSE)
+    canvas4.get_tk_widget().config(width=330,height=310)
+
 # Pop-up window Figures.
 figI = Figure(figsize=(5,5),dpi=100)
 figI, axI = plt.subplots()
