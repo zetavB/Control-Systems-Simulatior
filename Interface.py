@@ -28,7 +28,7 @@ height= mainWindow.winfo_screenheight()
 scalingFactor = ((width*height)/(1920*1080)) * 1.5
 if(scalingFactor < 1.28):
     default_font = tk.font.nametofont("TkDefaultFont")
-    default_font.configure(size=7)
+    default_font.configure(size=6)
     mainWindow.option_add("*Font", default_font)
     mainWindow.tk.call('tk', 'scaling', scalingFactor)
 print(scalingFactor)
@@ -577,9 +577,15 @@ def masterButtonRealtime():
    elif transfer == 2: mode = 'reg'
    elif transfer == 3: mode = 'both'
    else: mode = 'process'
-   numeratorP = [plantPValue.get()*(plantTauValue.get()**2)]
+   if(processSelect.get() == "Standard"):
+         numeratorP = [plantPValue.get()*(plantTauValue.get()**2)]
+   else:
+         numeratorP = [plantPValue.get()]
    numP = [float(x) for x in numeratorP]
-   denominatorP = [1,(2*plantTauValue.get()*plantZetaValue.get()),plantTauValue.get()**2]
+   if(processSelect.get() == "Standard"):
+         denominatorP = [1,(2*plantTauValue.get()*plantZetaValue.get()),plantTauValue.get()**2]
+   else:
+         denominatorP = [plantZetaValue.get()*plantTauValue.get()**2,plantTauValue.get()*(plantZetaValue.get()+1),1]
    denP = [float(x) for x in denominatorP]
    A = co.tf(numP,denP)
    dT = plantDeadValue.get()
@@ -597,14 +603,14 @@ def masterButtonRealtime():
       axI.set_xlabel('Time ({})'.format(units));axI.set_ylabel('Amplitude')
    else:
       if(controllerSelect.get() == "Standard"):
-        numeratorC = [(alphaValue.get()*pValue.get()*dValue.get()*iValue.get()),pValue.get()*(dValue.get()*(alphaValue.get()+1)+iValue.get()),1]
+        numeratorC = [((alphaValue.get()+1)*pValue.get()*dValue.get()*iValue.get()),pValue.get()*((alphaValue.get()*dValue.get()+iValue.get())*pValue.get()),pValue.get()]
       elif(controllerSelect.get() == "Parallel"):
         numeratorC = [dValue.get()*(alphaValue.get()*pValue.get()+1), pValue.get()+(alphaValue.get()*iValue.get()*dValue.get()), iValue.get()]
       elif(controllerSelect.get() == "Series"):
         numeratorC = [pValue.get()*iValue.get()*dValue.get(), iValue.get()+dValue.get(), pValue.get()]
       numC = [float(x) for x in numeratorC]
       if(controllerSelect.get() == "Standard"):
-        denC = [(alphaValue.get()*dValue.get()),1]
+        denC = [(alphaValue.get()*dValue.get()*iValue.get()),iValue.get(),0]
       elif(controllerSelect.get() == "Parallel"):
         denC = [alphaValue.get()*dValue.get(),1,0]
       elif(controllerSelect.get() == "Series"):
