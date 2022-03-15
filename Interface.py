@@ -71,6 +71,7 @@ changeP = tk.IntVar(mainWindow, 0)
 changeI = tk.IntVar(mainWindow, 0)
 changeD = tk.IntVar(mainWindow, 0)
 changeSlide = tk.IntVar(mainWindow, 0)
+changeContPlant = tk.IntVar(mainWindow, 0)
 realtimeExecute = tk.IntVar(mainWindow, 1)
 
 # Sector A.
@@ -270,8 +271,10 @@ def checkRealtime(*args):
         simulator()
     else:
         simulatorRealtime()
+        runButton.configure(state= 'disabled')
 
 def changeLabelsForPIDType(*args):
+    changeContPlant.set(1)
     if(controllerSelect.get() == "Standard"):
         propLabel.config(text="Kp")
         intLabel.config(text="Ti")
@@ -301,6 +304,7 @@ def changeLabelsForPIDType(*args):
         contAlphaOption.config(text="α′")
 
 def changeLabelsForProcessType(*args):
+    changeContPlant.set(1)
     if(processSelect.get() == "Standard"):
         procPLabel.config(text="DC Gain")
         procFreqLabel.config(text="Natural\nFrequency")
@@ -323,6 +327,7 @@ def changeLabelsForProcessType(*args):
 def stopRealtime(*args):
     realtimeExecute.set(0)
     stopButton.focus()
+    runButton.configure(state= 'normal')
 
 def closedLoop():
    cl = tk.Toplevel(mainWindow)
@@ -391,6 +396,54 @@ def granularityHintText(*args):
    granularity.configure(fg='black')
    granularity.delete(0,'end')
    granularity.unbind('<Button-1>',granularityBind)
+
+def discreteOptionLock(*args):
+    pnumEntry.configure(state= 'normal')
+    pdenEntry.configure(state= 'normal')
+    plantDelay.configure(state= 'normal')
+    cnumEntry.configure(state= 'normal')
+    cdenEntry.configure(state= 'normal')
+    barraP.configure(state= 'disabled')
+    barraI.configure(state= 'disabled')
+    barraD.configure(state= 'disabled')
+    barraAlpha.configure(state= 'disabled')
+    barraPlantP.configure(state= 'disabled')
+    barraPlantTheta.configure(state= 'disabled')
+    barraPlantTs.configure(state= 'disabled')
+    barraPlantZeta.configure(state= 'disabled')
+    plantPOption.configure(state= 'disabled')
+    plantTauOption.configure(state= 'disabled')
+    plantZetaOption.configure(state= 'disabled')
+    plantDeadOption.configure(state= 'disabled')
+    contAlphaOption.configure(state= 'disabled')
+    contPOption.configure(state= 'disabled')
+    contIOption.configure(state= 'disabled')
+    contDOption.configure(state= 'disabled')
+    loadRangeButton.configure(state= 'disabled')
+
+def realtimeOptionLock(*args):
+    pnumEntry.configure(state= 'disabled')
+    pdenEntry.configure(state= 'disabled')
+    plantDelay.configure(state= 'disabled')
+    cnumEntry.configure(state= 'disabled')
+    cdenEntry.configure(state= 'disabled')
+    barraP.configure(state= 'normal')
+    barraI.configure(state= 'normal')
+    barraD.configure(state= 'normal')
+    barraAlpha.configure(state= 'normal')
+    barraPlantP.configure(state= 'normal')
+    barraPlantTheta.configure(state= 'normal')
+    barraPlantTs.configure(state= 'normal')
+    barraPlantZeta.configure(state= 'normal')
+    plantPOption.configure(state= 'normal')
+    plantTauOption.configure(state= 'normal')
+    plantZetaOption.configure(state= 'normal')
+    plantDeadOption.configure(state= 'normal')
+    contAlphaOption.configure(state= 'normal')
+    contPOption.configure(state= 'normal')
+    contIOption.configure(state= 'normal')
+    contDOption.configure(state= 'normal')
+    loadRangeButton.configure(state= 'normal')
 
 def stepOptionLock(*args):
    stepEntry.configure(state='normal')
@@ -1066,7 +1119,7 @@ Ms = {}
 
 def simulatorRealtime(*args):
     if realtimeExecute.get() == 1:
-        if changeP.get() == 1 or changeI.get() == 1 or changeD.get() == 1 or changeSlide.get() == 1:
+        if changeP.get() == 1 or changeI.get() == 1 or changeD.get() == 1 or changeSlide.get() == 1 or changeContPlant.get() == 1:
            # GUI settings.
            runButton.focus()
            now = datetime.now()
@@ -1288,6 +1341,7 @@ def simulatorRealtime(*args):
     changeI.set(0)
     changeD.set(0)
     changeSlide.set(0)
+    changeContPlant.set(0)
 
     canvas1.get_tk_widget().update_idletasks   
     canvas2.get_tk_widget().update_idletasks
@@ -1339,7 +1393,7 @@ sectorE = ttk.LabelFrame(mainWindow,text='6.Simulation Results')
 sectorE.grid(column=3, row=0, sticky="NSEW", rowspan=3)
 
 
-sectorF = ttk.LabelFrame(mainWindow,text='2.Range Adjustment')
+sectorF = ttk.LabelFrame(mainWindow,text='2.Slider Range Adjustment')
 #sectorF.place(x=263,y=5,width=412,height=260)
 sectorF.grid(column=1, sticky="NSEW", row=0)
 
@@ -1668,6 +1722,32 @@ rampOption.bind("<Button-1>",rampOptionLock)
 param.insert(tk.END,"""Welcome to the Control Systems
 Simulator!\n""")
 param.configure(state='disabled')
+# Sector F RadioButtons settings.
+pnumEntry.configure(state= 'normal')
+pdenEntry.configure(state= 'normal')
+plantDelay.configure(state= 'normal')
+cnumEntry.configure(state= 'normal')
+cdenEntry.configure(state= 'normal')
+barraP.configure(state= 'disabled')
+barraI.configure(state= 'disabled')
+barraD.configure(state= 'disabled')
+barraAlpha.configure(state= 'disabled')
+barraPlantP.configure(state= 'disabled')
+barraPlantTheta.configure(state= 'disabled')
+barraPlantTs.configure(state= 'disabled')
+barraPlantZeta.configure(state= 'disabled')
+plantPOption.configure(state= 'disabled')
+plantTauOption.configure(state= 'disabled')
+plantZetaOption.configure(state= 'disabled')
+plantDeadOption.configure(state= 'disabled')
+contAlphaOption.configure(state= 'disabled')
+contPOption.configure(state= 'disabled')
+contIOption.configure(state= 'disabled')
+contDOption.configure(state= 'disabled')
+loadRangeButton.configure(state= 'disabled')
+discreteOption.bind("<Button-1>",discreteOptionLock)
+realtimeOption.bind("<Button-1>",realtimeOptionLock)
+
 
 mainWindow.config(menu=menubar)
 mainWindow.mainloop()
