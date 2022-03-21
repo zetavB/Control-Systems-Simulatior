@@ -30,7 +30,7 @@ if(scalingFactor < 1.28):
     default_font = tk.font.nametofont("TkDefaultFont")
     default_font.configure(size=6)
     mainWindow.option_add("*Font", default_font)
-    mainWindow.tk.call('tk', 'scaling', scalingFactor)
+    #mainWindow.tk.call('tk', 'scaling', scalingFactor)
 print(scalingFactor)
 mainWindow.geometry("%dx%d" % (width, height))
 #mainWindow.geometry("")
@@ -72,7 +72,9 @@ changeI = tk.IntVar(mainWindow, 0)
 changeD = tk.IntVar(mainWindow, 0)
 changeSlide = tk.IntVar(mainWindow, 0)
 changeContPlant = tk.IntVar(mainWindow, 0)
-realtimeExecute = tk.IntVar(mainWindow, 1)
+realtimeExecute = tk.IntVar(mainWindow, 0)
+changeContType = tk.IntVar(mainWindow, 0)
+changeSimData = tk.IntVar(mainWindow, 0)
 
 # Sector A.
 plantNum = tk.StringVar(mainWindow,'[1,2,3,...]')  # Hint text.
@@ -323,6 +325,12 @@ def changeLabelsForProcessType(*args):
         plantTauOption.config(text="Time\n Constant")
         plantZetaOption.config(text="a")
         plantDeadOption.config(text="Dead Time")
+
+def controlTypeChange(*args):
+    changeContType.set(1)
+
+def simDataChange(*args):
+    changeSimData.set(1)
   
 def stopRealtime(*args):
     realtimeExecute.set(0)
@@ -460,12 +468,16 @@ def resetProcess():
    plantDelay.delete(0,'end')
    exp.set('')
    eqP.set('')
+   if(realtimeExecute.get() == 1):
+    stopRealtime()
 
 def resetController():
    cResetButton.focus()
    cnumEntry.delete(0,'end')
    cdenEntry.delete(0,'end')
    eqC.set('')
+   if(realtimeExecute.get() == 1):
+    stopRealtime()
 
 def resetInputs():
    inputResetButton.focus()
@@ -478,7 +490,13 @@ def resetInputs():
    rampEntry.delete(0,'end')
    stepOption.select()
    stepEntry.configure(state='normal')
+   tinEntry.insert(0,'0')
+   timeEntry.insert(0,'0')
+   stepEntry.insert(0,'0')
+   rampEntry.insert(0, '0')
    rampEntry.configure(state='disabled')
+   if(realtimeExecute.get() == 1):
+    stopRealtime()
 
 def masterReset(*args):
    allResetButton.focus()
@@ -489,6 +507,10 @@ def masterReset(*args):
    stepEntry.configure(state='normal');stepEntry.delete(0,'end')
    rampEntry.configure(state='normal');rampEntry.delete(0,'end')
    stepEntry.configure(state='normal')
+   tinEntry.insert(0,'0')
+   timeEntry.insert(0,'0')
+   stepEntry.insert(0,'0')
+   rampEntry.insert(0, '0')
    rampEntry.configure(state='disabled')
    stepOption.select();servoOption.select()
    exp.set('');eqP.set('');eqC.set('')
@@ -502,6 +524,8 @@ def masterReset(*args):
    canvas2.get_tk_widget().pack_forget()
    canvas3.get_tk_widget().pack_forget()
    canvas4.get_tk_widget().pack_forget()
+   if(realtimeExecute.get() == 1):
+    stopRealtime()
 
 def masterButton():
    axI.clear();axII.clear();axIII.clear();axIV.clear()
@@ -653,7 +677,7 @@ def masterButtonRealtime():
          tP,yP,inP = response(P,magRamp,timeIn,t,In) 
       axI.plot(tP,inP,':m',label='r(t)')
       axI.plot(tP,yP,'-b',label='y(t)');axI.legend()
-      axI.set_xlabel('Time ({})'.format(units));axI.set_ylabel('Amplitude')
+      axI.set_xlabel('Time ({})'.format(units));axI.set_ylabel('Amplitude');axI.set_title('Process Natural Response')
    else:
       if(controllerSelect.get() == "Standard"):
         numeratorC = [((alphaValue.get()+1)*pValue.get()*dValue.get()*iValue.get()),pValue.get()*((alphaValue.get()*dValue.get()+iValue.get())*pValue.get()),pValue.get()]
@@ -682,10 +706,17 @@ def masterButtonRealtime():
             tUR,yUR,inUR = response(UR,magRamp,timeIn,t,In)
          axI.plot(tServo,inServo,':m',label='r(t)')
          axI.plot(tServo,yServo,'-b',label='yr(t)');axI.legend()
-         axI.set_xlabel('Time ({})'.format(units));axI.set_ylabel('Amplitude')
+         axI.set_xlabel('Time ({})'.format(units));axI.set_ylabel('Amplitude');axI.set_title('System Response (Servo)')
          axII.plot(tServo,inServo,':m',label='r(t)')
          axII.plot(tUR,yUR,'-b',label='ur(t)');axII.legend()
-         axII.set_xlabel('Time ({})'.format(units));axII.set_ylabel('Amplitude')
+         axII.set_xlabel('Time ({})'.format(units));axII.set_ylabel('Amplitude');axII.set_title('Controller Response (Servo)')
+         if In == 'step':
+            tP,yP,inP = response(P,magStep,timeIn,t,In)
+         elif In == 'ramp':
+            tP,yP,inP = response(P,magRamp,timeIn,t,In)
+         axIII.plot(tP,inP,':m',label='r(t)')
+         axIII.plot(tP,yP,'-b',label='y(t)');axIII.legend()
+         axIII.set_xlabel('Time ({})'.format(units));axIII.set_ylabel('Amplitude');axIII.set_title('Process Natural Response')
       elif mode == 'reg':
          if In == 'step':
             tReg,yReg,inReg = response(MYD,magStep,timeIn,t,In)
@@ -695,10 +726,17 @@ def masterButtonRealtime():
             tUD,yUD,inUD = response(UD,magRamp,timeIn,t,In)
          axI.plot(tReg,inReg,':m',label='d(t)')
          axI.plot(tReg,yReg,'-b',label='yd(t)');axI.legend()
-         axI.set_xlabel('Time ({})'.format(units));axI.set_ylabel('Amplitude')
+         axI.set_xlabel('Time ({})'.format(units));axI.set_ylabel('Amplitude');axI.set_title('System Response (Regulatory)')
          axII.plot(tReg,inReg,':m',label='d(t)')
          axII.plot(tUD,yUD,'-b',label='ud(t)');axII.legend()
-         axII.set_xlabel('Time ({})'.format(units));axII.set_ylabel('Amplitude')
+         axII.set_xlabel('Time ({})'.format(units));axII.set_ylabel('Amplitude');axII.set_title('Controller Response (Regulatory)')
+         if In == 'step':
+            tP,yP,inP = response(P,magStep,timeIn,t,In)
+         elif In == 'ramp':
+            tP,yP,inP = response(P,magRamp,timeIn,t,In)
+         axIII.plot(tP,inP,':m',label='r(t)')
+         axIII.plot(tP,yP,'-b',label='y(t)');axIII.legend()
+         axIII.set_xlabel('Time ({})'.format(units));axIII.set_ylabel('Amplitude');axIII.set_title('Process Natural Response')
       elif mode == 'both':
          if In == 'step':
             tServo,yServo,inServo = response(MYR,magStep,timeIn,t,In)
@@ -712,16 +750,16 @@ def masterButtonRealtime():
             tUD,yUD,inUD = response(UD,magRamp,timeIn,t,In)
          axI.plot(tServo,inServo,':m',label='r(t)')
          axI.plot(tServo,yServo,'-b',label='yr(t)');axI.legend()
-         axI.set_xlabel('Time ({})'.format(units));axI.set_ylabel('Amplitude')
+         axI.set_xlabel('Time ({})'.format(units));axI.set_ylabel('Amplitude');axI.set_title('System Response (Servo)')
          axII.plot(tServo,inServo,':m',label='r(t)')
          axII.plot(tUR,yUR,'-b',label='ur(t)');axII.legend()
-         axII.set_xlabel('Time ({})'.format(units));axII.set_ylabel('Amplitude')
+         axII.set_xlabel('Time ({})'.format(units));axII.set_ylabel('Amplitude');axII.set_title('Controller Response (Servo)')
          axIII.plot(tServo,inServo,':m',label='d(t)')
          axIII.plot(tReg,yReg,'-b',label='yd(t)');axIII.legend()
-         axIII.set_xlabel('Time ({})'.format(units));axIII.set_ylabel('Amplitude')
+         axIII.set_xlabel('Time ({})'.format(units));axIII.set_ylabel('Amplitude');axIII.set_title('System Response (Regulatory)')
          axIV.plot(tServo,inServo,':m',label='d(t)')
          axIV.plot(tUD,yUD,'-b',label='ud(t)');axIV.legend()
-         axIV.set_xlabel('Time ({})'.format(units));axIV.set_ylabel('Amplitude')
+         axIV.set_xlabel('Time ({})'.format(units));axIV.set_ylabel('Amplitude');axIV.set_title('Controller Response (Regulatory)')
    var = position.get()
    if var == 1: F = figI
    elif var == 2: F = figII
@@ -1119,7 +1157,7 @@ Ms = {}
 
 def simulatorRealtime(*args):
     if realtimeExecute.get() == 1:
-        if changeP.get() == 1 or changeI.get() == 1 or changeD.get() == 1 or changeSlide.get() == 1 or changeContPlant.get() == 1:
+        if changeP.get() == 1 or changeI.get() == 1 or changeD.get() == 1 or changeSlide.get() == 1 or changeContPlant.get() == 1 or changeContType.get() == 1 or changeSimData.get() == 1:
            # GUI settings.
            runButton.focus()
            now = datetime.now()
@@ -1342,7 +1380,9 @@ def simulatorRealtime(*args):
     changeD.set(0)
     changeSlide.set(0)
     changeContPlant.set(0)
-
+    changeContType.set(0)
+    changeSimData.set(0)
+    
     canvas1.get_tk_widget().update_idletasks   
     canvas2.get_tk_widget().update_idletasks
     canvas3.get_tk_widget().update_idletasks   
@@ -1553,14 +1593,14 @@ inputResetButton.grid(row=8,column=1,columnspan=2,pady=9)
 
 # Sector C widgets.
 # Radiobuttons.
-servoOption = tk.Radiobutton(sectorC, text='Servo Control',variable=graphics,value=1)
+servoOption = tk.Radiobutton(sectorC, text='Servo Control',variable=graphics,value=1, command=controlTypeChange)
 servoOption.grid(row=2,column=1,pady=10,sticky='w')
-regOption = tk.Radiobutton(sectorC, text='Regulatory Control',variable=graphics,value=2)
+regOption = tk.Radiobutton(sectorC, text='Regulatory Control',variable=graphics,value=2, command=controlTypeChange)
 regOption.grid(row=1,column=1,pady=5,sticky='w')
 regOption.select()
-bothOption = tk.Radiobutton(sectorC, text='Servo and Regulatory',variable=graphics,value=3)
+bothOption = tk.Radiobutton(sectorC, text='Servo and Regulatory',variable=graphics,value=3, command=controlTypeChange)
 bothOption.grid(row=3,column=1,pady=5,sticky='w')
-processOption = tk.Radiobutton(sectorC, text='Reaction Curve',variable=graphics,value=4)
+processOption = tk.Radiobutton(sectorC, text='Reaction Curve',variable=graphics,value=4, command=controlTypeChange)
 processOption.grid(row=4,column=1,pady=5,sticky='w')
 # Buttons.
 allResetButton = tk.Button(sectorC,text='Reset ALL',bg='#829ce3',width=10,command=masterReset, font = buttonFont)
@@ -1709,6 +1749,10 @@ timeEntry.configure(fg='gray')
 tinEntry.configure(fg='gray')
 stepEntry.configure(fg='gray')
 rampEntry.configure(fg='gray')
+timeEntry.bind("<Return>", simDataChange)
+tinEntry.bind("<Return>", simDataChange)
+stepEntry.bind("<Return>", simDataChange)
+rampEntry.bind("<Return>", simDataChange)
 timeBind = timeEntry.bind("<FocusIn>",timeHintText)
 tinBind = tinEntry.bind("<FocusIn>",intimeHintText)
 stepBind = stepEntry.bind("<FocusIn>",stepHintText)
