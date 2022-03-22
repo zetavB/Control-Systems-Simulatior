@@ -680,7 +680,7 @@ def masterButtonRealtime():
       axI.set_xlabel('Time ({})'.format(units));axI.set_ylabel('Amplitude');axI.set_title('Process Natural Response')
    else:
       if(controllerSelect.get() == "Standard"):
-        numeratorC = [((alphaValue.get()+1)*pValue.get()*dValue.get()*iValue.get()),pValue.get()*((alphaValue.get()*dValue.get()+iValue.get())*pValue.get()),pValue.get()]
+        numeratorC = [((alphaValue.get()+1)*pValue.get()*dValue.get()*iValue.get()),pValue.get()*((alphaValue.get()*dValue.get()+iValue.get())),pValue.get()]
       elif(controllerSelect.get() == "Parallel"):
         numeratorC = [dValue.get()*(alphaValue.get()*pValue.get()+1), pValue.get()+(alphaValue.get()*iValue.get()*dValue.get()), iValue.get()]
       elif(controllerSelect.get() == "Series"):
@@ -1272,7 +1272,7 @@ def simulatorRealtime(*args):
               # Controller data.
               try:
                  if(controllerSelect.get() == "Standard"):
-                    numeratorC = [((alphaValue.get()+1)*pValue.get()*dValue.get()*iValue.get()),pValue.get()*((alphaValue.get()*dValue.get()+iValue.get())*pValue.get()),pValue.get()]
+                    numeratorC = [((alphaValue.get()+1)*pValue.get()*dValue.get()*iValue.get()),pValue.get()*((alphaValue.get()*dValue.get()+iValue.get())),pValue.get()]
                     #numeratorC = [(alphaValue.get()*pValue.get()*dValue.get()*iValue.get()),pValue.get()*(dValue.get()*(alphaValue.get()+1)+iValue.get()),1]
                  elif(controllerSelect.get() == "Parallel"):
                     numeratorC = [dValue.get()*(alphaValue.get()*pValue.get()+1), pValue.get()+(alphaValue.get()*iValue.get()*dValue.get()), iValue.get()]
