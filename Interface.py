@@ -1098,25 +1098,33 @@ Please enter valid numerical data using the format [a,b,c].""")
             if In == 'step':
                tServo,yServo,inServo = response(MYR,magStep,timeIn,t,In)
                tUR,yUR,inUR = response(UR,magStep,timeIn,t,In)
+               tP,yP,inP = response(P,magStep,timeIn,t,In)
+               indexes('P',In,inP,yP,tP,0)
                indexes('MYR',In,inServo,yServo,tServo,yUR)
-               graph(lab,inServo,tServo,yServo,tUR,yUR)
+               graph(lab,inServo,tServo,yServo,tUR,yUR,tP,yP)
             elif In == 'ramp':
                tServo,yServo,inServo = response(MYR,magRamp,timeIn,t,In)
                tUR,yUR,inUR = response(UR,magRamp,timeIn,t,In)
+               tP,yP,inP = response(P,magRamp,timeIn,t,In)
+               indexes('P',In,inP,yP,tP,0)
                indexes('MYR',In,inServo,yServo,tServo,yUR)
-               graph(lab,inServo,tServo,yServo,tUR,yUR)
+               graph(lab,inServo,tServo,yServo,tUR,yUR,tP,yP)
          elif mode == 'reg':
             lab = 'reg'
             if In == 'step':
                tReg,yReg,inReg = response(MYD,magStep,timeIn,t,In)
                tUD,yUD,inUD = response(UD,magStep,timeIn,t,In)
+               tP,yP,inP = response(P,magStep,timeIn,t,In)
+               indexes('P',In,inP,yP,tP,0)
                indexes('MYD',In,inReg,yReg,tReg,yUD)
-               graph(lab,inReg,tReg,yReg,tUD,yUD)
+               graph(lab,inReg,tReg,yReg,tUD,yUD,tP,yP)
             elif In == 'ramp':
                tReg,yReg,inReg = response(MYD,magRamp,timeIn,t,In)
                tUD,yUD,inUD = response(UD,magRamp,timeIn,t,In)
+               tP,yP,inP = response(P,magRamp,timeIn,t,In)
+               indexes('P',In,inP,yP,tP,0)
                indexes('MYD',In,inReg,yReg,tReg,yUD)
-               graph(lab,inReg,tReg,yReg,tUD,yUD)
+               graph(lab,inReg,tReg,yReg,tUD,yUD,tP,yP)
          elif mode == 'both':
             lab = 'both'
             if In == 'step':
