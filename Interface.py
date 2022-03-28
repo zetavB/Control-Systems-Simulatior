@@ -1382,7 +1382,7 @@ def simulatorRealtime(*args):
                        graph(lab,inServo,tServo,yServo,tUR,yUR,tReg,yReg,tUD,yUD)
               except ValueError:
               # Add context to error eg. Numerator degree greater than denominator degree
-                 tkinter.messagebox.showerror('Simulation Error', """SIMULATION ERROR: Servo control cannot be utilized with realtime simulation using a standard PID""")
+                 tkinter.messagebox.showerror('Simulation Error', """SIMULATION ERROR: The transfer function is not proper. Is your derivative filter value 0?""")
               # Closed Loop maximum sensitivity Ms.
               m,p,w = co.bode_plot(S,plot=False)  # This bode function is used to obtain the magnitude of S.
               Ms = max(m)  # Ms is the maximum value of the magnitude array.
