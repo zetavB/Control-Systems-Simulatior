@@ -585,6 +585,13 @@ def masterButton():
          axII.plot(tServo,inServo,':m',label='r(t)')
          axII.plot(tUR,yUR,'-b',label='ur(t)');axII.legend()
          axII.set_xlabel('Time ({})'.format(units));axII.set_ylabel('Amplitude')
+         if In == 'step':
+            tP,yP,inP = response(P,magStep,timeIn,t,In)
+         elif In == 'ramp':
+            tP,yP,inP = response(P,magRamp,timeIn,t,In)
+         axIII.plot(tP,inP,':m',label='r(t)')
+         axIII.plot(tP,yP,'-b',label='y(t)');axIII.legend()
+         axIII.set_xlabel('Time ({})'.format(units));axIII.set_ylabel('Amplitude');axIII.set_title('Process Natural Response')
       elif mode == 'reg':
          if In == 'step':
             tReg,yReg,inReg = response(MYD,magStep,timeIn,t,In)
@@ -598,6 +605,13 @@ def masterButton():
          axII.plot(tReg,inReg,':m',label='d(t)')
          axII.plot(tUD,yUD,'-b',label='ud(t)');axII.legend()
          axII.set_xlabel('Time ({})'.format(units));axII.set_ylabel('Amplitude')
+         if In == 'step':
+            tP,yP,inP = response(P,magStep,timeIn,t,In)
+         elif In == 'ramp':
+            tP,yP,inP = response(P,magRamp,timeIn,t,In)
+         axIII.plot(tP,inP,':m',label='r(t)')
+         axIII.plot(tP,yP,'-b',label='y(t)');axIII.legend()
+         axIII.set_xlabel('Time ({})'.format(units));axIII.set_ylabel('Amplitude');axIII.set_title('Process Natural Response')
       elif mode == 'both':
          if In == 'step':
             tServo,yServo,inServo = response(MYR,magStep,timeIn,t,In)
