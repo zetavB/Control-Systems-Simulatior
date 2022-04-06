@@ -18,6 +18,7 @@ from tkinter import ttk
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg,NavigationToolbar2Tk
 from matplotlib.figure import Figure
+import platform
 
 #################################################
 #######       BASIC WINDOW SETTINGS       #######
@@ -26,11 +27,16 @@ mainWindow = tk.Tk()
 width= mainWindow.winfo_screenwidth() 
 height= mainWindow.winfo_screenheight()
 scalingFactor = ((width*height)/(1920*1080)) * 1.5
-if(scalingFactor < 1.28):
-    default_font = tk.font.nametofont("TkDefaultFont")
-    default_font.configure(size=6)
-    mainWindow.option_add("*Font", default_font)
-    #mainWindow.tk.call('tk', 'scaling', scalingFactor)
+
+if(platform.system() == 'Windows'):
+    mainWindow.tk.call('tk', 'scaling', scalingFactor)
+    print("Windows")
+else:
+    if(scalingFactor < 1.28):
+        default_font = tk.font.nametofont("TkDefaultFont")
+        default_font.configure(size=6)
+        mainWindow.option_add("*Font", default_font)
+    
 print(scalingFactor)
 mainWindow.geometry("%dx%d" % (width, height))
 #mainWindow.geometry("")
