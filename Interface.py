@@ -2,6 +2,8 @@
 #######           CONTROL SYSTEMS SIMULATOR         #######
 #######              SIMULATION TOOL GUI            #######
 #######      EDUARDO VILLALOBOS UGALDE - B37571     #######
+#######      JORDI LOUZAO VON BREYMANN - B53993     #######
+#######             HELBER MENESES NAVARRO          #######
 ###########################################################
 
 # Libraries.
@@ -114,6 +116,8 @@ lowerBoundValue = tk.DoubleVar()
 lowerBoundValue.set(0.0)
 granularityValue = tk.DoubleVar()
 granularityValue.set(0.01)
+valueSetValue = tk.DoubleVar()
+valueSetValue.set(0)
 
 #################################################
 #######            FUNCTIONS              #######
@@ -257,6 +261,25 @@ def loadRange(*args):
         barraD.configure(from_ = lowerBoundValue.get(), to = upperBoundValue.get(), resolution = granularityValue.get())
     elif(valueAdjust.get() == 8):
         barraAlpha.configure(from_ = lowerBoundValue.get(), to = upperBoundValue.get(), resolution = granularityValue.get())
+        
+def setValue():
+    loadValueButton.focus()
+    if(valueAdjust.get() == 1):
+        barraPlantP.set(valueSetValue.get())
+    elif(valueAdjust.get() == 2):
+        barraPlantTs.set(valueSetValue.get())
+    elif(valueAdjust.get() == 3):
+        barraPlantZeta.set(valueSetValue.get())
+    elif(valueAdjust.get() == 4):
+        barraPlantTheta.set(valueSetValue.get())
+    elif(valueAdjust.get() == 5):
+        barraP.set(valueSetValue.get())
+    elif(valueAdjust.get() == 6):
+        barraI.set(valueSetValue.get())
+    elif(valueAdjust.get() == 7):
+        barraD.set(valueSetValue.get())
+    elif(valueAdjust.get() == 8):
+        barraAlpha.set(valueSetValue.get())
     
 def get_current_value():
     return '{: .2f}'.format(current_value.get())
@@ -411,6 +434,11 @@ def granularityHintText(*args):
    granularity.delete(0,'end')
    granularity.unbind('<Button-1>',granularityBind)
 
+def valueSetHintText(*args):
+   valueSet.configure(fg='black')
+   valueSet.delete(0,'end')
+   valueSet.unbind('<Button-1>',valueSetBind)
+
 def discreteOptionLock(*args):
     pnumEntry.configure(state= 'normal')
     pdenEntry.configure(state= 'normal')
@@ -434,6 +462,7 @@ def discreteOptionLock(*args):
     contIOption.configure(state= 'disabled')
     contDOption.configure(state= 'disabled')
     loadRangeButton.configure(state= 'disabled')
+    loadValueButton.configure(state= 'disabled')
 
 def realtimeOptionLock(*args):
     pnumEntry.configure(state= 'disabled')
@@ -458,6 +487,7 @@ def realtimeOptionLock(*args):
     contIOption.configure(state= 'normal')
     contDOption.configure(state= 'normal')
     loadRangeButton.configure(state= 'normal')
+    loadValueButton.configure(state= 'normal')
 
 def stepOptionLock(*args):
    stepEntry.configure(state='normal')
@@ -873,12 +903,21 @@ def indexes(FT,inputName,yinput,y,t,ua):
      C = """SERVO CONTROL
 {} INPUT""".format(inputName)
      T = 'TVur'
+     label0 = 'IAEr'
+     label1 = 'ISEr'
+     label2 = 'ITAEr'
    elif FT == 'MYD':
      C = """REGULATORY CONTROL
 {} INPUT""".format(inputName)
      T = 'TVud'
+     label0 = 'IAEd'
+     label1 = 'ISEd'
+     label2 = 'ITAEd'
    else:
      C = 'REACTION CURVE'
+     label0 = 'IAE'
+     label1 = 'ISE'
+     label2 = 'ITAE'
    if FT != 'P':
       TV = np.sum(np.abs(np.diff(ua)))
       TV = round(TV,7)
@@ -886,10 +925,10 @@ def indexes(FT,inputName,yinput,y,t,ua):
 {}
 
 {} = {}
-IAE = {}
-ISE = {}
-ITAE = {}
-""".format(C,T,TV,iae,ise,itae)
+{} = {}
+{} = {}
+{} = {}
+""".format(C,T,TV,label0,iae,label1,ise,label2,itae)
    else:
       results = """
 {}
@@ -1110,7 +1149,8 @@ Please enter valid numerical data using the format [a,b,c].""")
       S = 1/(1+C*P)
       UR = C/(1+C*P)
       UD = (-C*P)/(1+C*P)
-
+      print(MYR)
+      print(MYD)
       # System response and performance indexes computation.
       try:
          if mode == 'servo':
@@ -1324,9 +1364,8 @@ def simulatorRealtime(*args):
               except ValueError:
                  cdenEntry.focus()
                  tkinter.messagebox.showerror('Value Error', """VALUE ERROR: Invalid C(s) denominator values.
-        Please enter valid numerical data using the format [a,b,c].""") 
+        Please enter valid numerical data using the format [a,b,c].""")
               eqC.set(str(C))
-
               # Calculated transfer functions.
               MYR = (C*P)/(1+C*P)
               MYD = P/(1+C*P)
@@ -1461,7 +1500,7 @@ sectorE = ttk.LabelFrame(mainWindow,text='6.Simulation Results')
 sectorE.grid(column=3, row=0, sticky="NSEW", rowspan=3)
 
 
-sectorF = ttk.LabelFrame(mainWindow,text='2.Slider Range Adjustment')
+sectorF = ttk.LabelFrame(mainWindow,text='2.Slider Adjustment')
 #sectorF.place(x=263,y=5,width=412,height=260)
 sectorF.grid(column=1, sticky="NSEW", row=0)
 
@@ -1717,10 +1756,13 @@ upperBound = tk.Entry(sectorF,textvariable=upperBoundValue)
 upperBound.grid(row=2,column=2,pady=5,padx=5)
 granularity = tk.Entry(sectorF,textvariable=granularityValue)
 granularity.grid(row=2,column=3,pady=5,padx=5)
+valueSet = tk.Entry(sectorF,textvariable=valueSetValue)
+valueSet.grid(row=7,column=3,pady=5,padx=5)
 # Labels
 tk.Label(sectorF,text='Lower Bound:').grid(row=1,column=1,padx=10,sticky=tk.N)
 tk.Label(sectorF,text='Upper Bound:').grid(row=1,column=2,padx=10,sticky=tk.N)
 tk.Label(sectorF,text='Granularity:').grid(row=1,column=3,padx=10,sticky=tk.N)
+tk.Label(sectorF,text='Value Set:').grid(row=6,column=3,padx=10,sticky=tk.N)
 tk.Label(sectorF,text='Process:').grid(row=3,column=1,padx=10,sticky=tk.NW)
 tk.Label(sectorF,text='Controller:').grid(row=6,column=1,padx=10,sticky=tk.NW)
 # Radios
@@ -1730,7 +1772,7 @@ plantPOption.select()
 plantTauOption = tk.Radiobutton(sectorF, text='Nat. Freq.',variable=valueAdjust,value=2)
 plantTauOption.grid(row=4,column=2,pady=5,padx=10,sticky='w')
 plantZetaOption = tk.Radiobutton(sectorF, text='Damping Factor',variable=valueAdjust,value=3)
-plantZetaOption.grid(row=4,column=3,pady=5,padx=10,sticky='w')
+plantZetaOption.grid(row=5,column=2,pady=5,padx=10,sticky='w')
 plantDeadOption = tk.Radiobutton(sectorF, text='Dead Time',variable=valueAdjust,value=4)
 plantDeadOption.grid(row=5,column=1,pady=5,padx=10,sticky='w')
 contPOption = tk.Radiobutton(sectorF, text='Kp',variable=valueAdjust,value=5)
@@ -1738,12 +1780,14 @@ contPOption.grid(row=7,column=1,pady=5,padx=10,sticky='w')
 contIOption = tk.Radiobutton(sectorF, text='Ti',variable=valueAdjust,value=6)
 contIOption.grid(row=7,column=2,pady=5,padx=10,sticky='w')
 contDOption = tk.Radiobutton(sectorF, text='Td',variable=valueAdjust,value=7)
-contDOption.grid(row=7,column=3,pady=5,padx=10,sticky='w')
+contDOption.grid(row=8,column=2,pady=5,padx=10,sticky='w')
 contAlphaOption = tk.Radiobutton(sectorF, text='α',variable=valueAdjust,value=8)
 contAlphaOption.grid(row=8,column=1,pady=5,padx=10,sticky='w')
 # Buttons
 loadRangeButton = tk.Button(sectorF,text='Load Range', bg='#fff15c', width=10, command=loadRange, font = buttonFont)
-loadRangeButton.grid(row=8,column=2,padx=10,ipady=5)
+loadRangeButton.grid(row=4,column=3,padx=10,ipady=5)
+loadValueButton = tk.Button(sectorF,text='Load Value', bg='#fff15c', width=10, command=setValue, font = buttonFont)
+loadValueButton.grid(row=8,column=3,padx=10,ipady=5)
 ##########################################
 #####        GUI MAIN SETTINGS       #####
 ##########################################
@@ -1764,6 +1808,7 @@ cdenEntry.configure(fg='gray')
 lowerBound.configure(fg='gray')
 upperBound.configure(fg='gray')
 granularity.configure(fg='gray')
+valueSet.configure(fg='gray')
 pnumBind = pnumEntry.bind("<FocusIn>",pNumHintText)
 pdenBind = pdenEntry.bind("<FocusIn>",pDenHintText)
 delayBind = plantDelay.bind("<FocusIn>",delayHintText)
@@ -1772,6 +1817,7 @@ cdenBind = cdenEntry.bind("<FocusIn>",cDenHintText)
 lowerBoundBind = lowerBound.bind("<FocusIn>",lowerBoundHintText)
 upperBoundBind = upperBound.bind("<FocusIn>",upperBoundHintText)
 granularityBind = granularity.bind("<FocusIn>",granularityHintText)
+valueSetBind = valueSet.bind("<FocusIn>",valueSetHintText)
 # Sector B.
 timeEntry.configure(fg='gray')
 tinEntry.configure(fg='gray')
@@ -1817,6 +1863,7 @@ contPOption.configure(state= 'disabled')
 contIOption.configure(state= 'disabled')
 contDOption.configure(state= 'disabled')
 loadRangeButton.configure(state= 'disabled')
+loadValueButton.configure(state= 'disabled')
 discreteOption.bind("<Button-1>",discreteOptionLock)
 realtimeOption.bind("<Button-1>",realtimeOptionLock)
 
