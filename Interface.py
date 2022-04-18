@@ -90,6 +90,8 @@ plantDen = tk.StringVar(mainWindow,'[1,2,3,...]')
 deadTime = tk.DoubleVar()
 contNum = tk.StringVar(mainWindow,'[1,2,3,...]')
 contDen = tk.StringVar(mainWindow,'[1,2,3,...]')
+padeVal = tk.IntVar(mainWindow, 10)
+padeVal.set(10)
 eqP = tk.StringVar()
 exp = tk.StringVar()
 eqC = tk.StringVar()
@@ -438,6 +440,11 @@ def valueSetHintText(*args):
    valueSet.configure(fg='black')
    valueSet.delete(0,'end')
    valueSet.unbind('<Button-1>',valueSetBind)
+   
+def padeEntryHintText(*args):
+   padeEntry.configure(fg='black')
+   padeEntry.delete(0,'end')
+   padeEntry.unbind('<Button-1>',padeEntryBind)
 
 def discreteOptionLock(*args):
     pnumEntry.configure(state= 'normal')
@@ -1100,7 +1107,7 @@ Please enter valid numerical data using the format [a,b,c].""")
    try:
       dT = deadTime.get()
       L = float(dT)
-      numPade,denPade = co.pade(L,n=10)
+      numPade,denPade = co.pade(L,n=padeVal.get())
       Pade = co.tf(numPade,denPade)
       P = A*Pade
    except tkinter.TclError:
@@ -1112,17 +1119,21 @@ Please enter valid numerical data.""")
    else: exp.set('*e^-{} s'.format(dT))
    
    if mode == 'process':
-      lab = 'Process'
-      if In == 'step':
-         tP,yP,inP = response(P,magStep,timeIn,t,In)
-         indexes('P',In,inP,yP,tP,0)
-         graph(lab,inP,tP,yP)
-      elif In == 'ramp':
-         tP,yP,inP = response(P,magRamp,timeIn,t,In)
-         indexes('P',In,inP,yP,tP,0)
-         graph(lab,inP,tP,yP)
-      ending = '------------------------------'
-   
+      try:
+         lab = 'Process'
+         if In == 'step':
+            tP,yP,inP = response(P,magStep,timeIn,t,In)
+            indexes('P',In,inP,yP,tP,0)
+            graph(lab,inP,tP,yP)
+         elif In == 'ramp':
+            tP,yP,inP = response(P,magRamp,timeIn,t,In)
+            indexes('P',In,inP,yP,tP,0)
+            graph(lab,inP,tP,yP)
+         ending = '------------------------------'
+      except ValueError:
+      # Add context to error eg. Numerator degree greater than denominator degree
+         tkinter.messagebox.showerror('Simulation Error', """SIMULATION ERROR: A non-proper transfer function.
+has been entered.""")
    else:
       # Controller data.
       try:
@@ -1221,6 +1232,7 @@ Ms = {}
    param.see('end')
    param.configure(state='disabled')
    
+   changeSimData.set(0)
    canvas1.get_tk_widget().update_idletasks
 
 def simulatorRealtime(*args):
@@ -1313,7 +1325,7 @@ def simulatorRealtime(*args):
            try:
               dT = plantDeadValue.get()
               L = float(dT)
-              numPade,denPade = co.pade(L,n=10)
+              numPade,denPade = co.pade(L,n=padeVal.get())
               Pade = co.tf(numPade,denPade)
               P = A*Pade
            except tkinter.TclError:
@@ -1325,16 +1337,21 @@ def simulatorRealtime(*args):
            else: exp.set('*e^-{} s'.format(dT))
            
            if mode == 'process':
-              lab = 'Process'
-              if In == 'step':
-                 tP,yP,inP = response(P,magStep,timeIn,t,In)
-                 indexes('P',In,inP,yP,tP,0)
-                 graph(lab,inP,tP,yP)
-              elif In == 'ramp':
-                 tP,yP,inP = response(P,magRamp,timeIn,t,In)
-                 indexes('P',In,inP,yP,tP,0)
-                 graph(lab,inP,tP,yP)
-              ending = '------------------------------'
+              try:
+                  lab = 'Process'
+                  if In == 'step':
+                     tP,yP,inP = response(P,magStep,timeIn,t,In)
+                     indexes('P',In,inP,yP,tP,0)
+                     graph(lab,inP,tP,yP)
+                  elif In == 'ramp':
+                     tP,yP,inP = response(P,magRamp,timeIn,t,In)
+                     indexes('P',In,inP,yP,tP,0)
+                     graph(lab,inP,tP,yP)
+                  ending = '------------------------------'
+              except ValueError:
+      # Add context to error eg. Numerator degree greater than denominator degree
+                  tkinter.messagebox.showerror('Simulation Error', """SIMULATION ERROR: A non-proper transfer function.
+has been entered.""")
            
            else:
               # Controller data.
@@ -1522,7 +1539,6 @@ tk.Label(sectorA,text='Controller\n Parameters:', font=Desired_font).grid(row=1,
 tk.Label(sectorA,text='Numerator:').grid(row=2,column=3,padx=10,sticky=tk.W)
 tk.Label(sectorA,text='Denominator:').grid(row=3,column=3,padx=10,sticky=tk.W)
 tk.Label(sectorA,text='C(s) Transfer Function:').grid(row=9,column=3,columnspan=2,padx=10,sticky='nsew')
-
 procPLabel = tk.Label(sectorA,text='DC\n Gain:')
 procPLabel.grid(row=5,column=1,columnspan=1,padx=0,sticky='nsew')
 procFreqLabel = tk.Label(sectorA,text='Natural\n Frequency :')
@@ -1531,7 +1547,6 @@ procDampLabel = tk.Label(sectorA,text='Damping\n Factor:')
 procDampLabel.grid(row=7,column=1,columnspan=1,padx=0,sticky='nsew')
 procDeadLabel = tk.Label(sectorA,text='Dead Time:')
 procDeadLabel.grid(row=8,column=1,columnspan=1,padx=0,sticky='nsew')
-
 propLabel = tk.Label(sectorA,text='Kp:')
 propLabel.grid(row=5,column=3,columnspan=1,padx=0,sticky='nsew')
 intLabel = tk.Label(sectorA,text='Ti:')
@@ -1544,6 +1559,8 @@ typeLabel = tk.Label(sectorA,text='PID Type:')
 typeLabel.grid(row=1,column=5,padx=5)
 typeLabelProc = tk.Label(sectorA,text='Process Type:')
 typeLabelProc.grid(row=3,column=5,padx=5)
+padeLabel = tk.Label(sectorA,text='Pade Degree:')
+padeLabel.grid(row=11,column=5,padx=5)
 # Entries.
 pnumEntry = tk.Entry(sectorA,textvariable=plantNum)
 pnumEntry.grid(row=2,column=2,padx=10,pady=5)
@@ -1555,6 +1572,9 @@ cnumEntry = tk.Entry(sectorA,textvariable=contNum)
 cnumEntry.grid(row=2,column=4,padx=10)
 cdenEntry = tk.Entry(sectorA,textvariable=contDen)
 cdenEntry.grid(row=3,column=4)
+padeEntry = tk.Entry(sectorA,textvariable=padeVal,width=10)
+padeEntry.grid(row=12,column=5, pady=5)
+
 # Sliders
 if(scalingFactor < 1.28):
     barraPlantP = tk.Scale(sectorA, from_=0, to=100, resolution=0.1, length=100, orient='horizontal',command=sliderChanged, variable=plantPValue)
@@ -1809,6 +1829,7 @@ lowerBound.configure(fg='gray')
 upperBound.configure(fg='gray')
 granularity.configure(fg='gray')
 valueSet.configure(fg='gray')
+padeEntry.configure(fg='gray')
 pnumBind = pnumEntry.bind("<FocusIn>",pNumHintText)
 pdenBind = pdenEntry.bind("<FocusIn>",pDenHintText)
 delayBind = plantDelay.bind("<FocusIn>",delayHintText)
@@ -1818,6 +1839,8 @@ lowerBoundBind = lowerBound.bind("<FocusIn>",lowerBoundHintText)
 upperBoundBind = upperBound.bind("<FocusIn>",upperBoundHintText)
 granularityBind = granularity.bind("<FocusIn>",granularityHintText)
 valueSetBind = valueSet.bind("<FocusIn>",valueSetHintText)
+padeEntryBind = padeEntry.bind("<FocusIn>",padeEntryHintText)
+padeEntry.bind("<Return>", simDataChange)
 # Sector B.
 timeEntry.configure(fg='gray')
 tinEntry.configure(fg='gray')
