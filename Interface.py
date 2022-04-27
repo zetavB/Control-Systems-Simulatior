@@ -32,14 +32,12 @@ scalingFactor = ((width*height)/(1920*1080)) * 1.5
 
 if(platform.system() == 'Windows'):
     mainWindow.tk.call('tk', 'scaling', scalingFactor)
-    print("Windows")
 else:
     if(scalingFactor < 1.28):
         default_font = tk.font.nametofont("TkDefaultFont")
         default_font.configure(size=6)
         mainWindow.option_add("*Font", default_font)
-    
-print(scalingFactor)
+print('Scaling factor: {}'.format(scalingFactor))
 mainWindow.geometry("%dx%d" % (width, height))
 #mainWindow.geometry("")
 
@@ -95,7 +93,22 @@ padeVal.set(10)
 eqP = tk.StringVar()
 exp = tk.StringVar()
 eqC = tk.StringVar()
-eqP.set('');exp.set('');eqC.set('')  # No functions shown.
+eqPPole0 = tk.StringVar()
+eqPPole1 = tk.StringVar()
+eqC0Str = tk.StringVar()
+eqC1Str = tk.StringVar()
+eqC2Str = tk.StringVar()
+eqC3Str = tk.StringVar()
+eqMulti = tk.StringVar()
+eqAdd = tk.StringVar()
+eqVoid = tk.StringVar()
+eqLeftBracket = tk.StringVar()
+eqRightBracket = tk.StringVar()
+eqP.set('');exp.set('');eqC.set('');eqPPole0.set('');eqPPole1.set('');eqVoid.set('')  # No functions shown.
+eqMulti.set(' * ')
+eqAdd.set(' + ')
+eqLeftBracket.set(' [ ')
+eqRightBracket.set(' ] ')
 # Sector B.
 simTime = tk.DoubleVar()
 options = ('s', 'min', 'h')
@@ -317,6 +330,15 @@ def changeLabelsForPIDType(*args):
         contIOption.config(text="Ti")
         contDOption.config(text="Td")
         contAlphaOption.config(text="α")
+        cont0.config(textvariable=eqC0Str)
+        cont1.config(textvariable=eqLeftBracket)
+        cont2.config(textvariable=eqC1Str)
+        cont3.config(textvariable=eqAdd)
+        cont4.config(textvariable=eqC2Str)
+        cont5.config(textvariable=eqAdd)
+        cont6.config(textvariable=eqC3Str)
+        cont7.config(textvariable=eqRightBracket)
+        
     elif(controllerSelect.get() == "Parallel"):
         propLabel.config(text="Kp")
         intLabel.config(text="Ki")
@@ -326,6 +348,15 @@ def changeLabelsForPIDType(*args):
         contIOption.config(text="Ki")
         contDOption.config(text="Kd")
         contAlphaOption.config(text="α")
+        cont0.config(textvariable=eqC0Str)
+        cont1.config(textvariable=eqAdd)
+        cont2.config(textvariable=eqC1Str)
+        cont3.config(textvariable=eqAdd)
+        cont4.config(textvariable=eqC2Str)
+        cont5.config(textvariable=eqVoid)
+        cont6.config(textvariable=eqVoid)
+        cont7.config(textvariable=eqVoid)
+        
     elif(controllerSelect.get() == "Series"):
         propLabel.config(text="Kp′")
         intLabel.config(text="Ti′")
@@ -335,6 +366,14 @@ def changeLabelsForPIDType(*args):
         contIOption.config(text="Ti′")
         contDOption.config(text="Td′")
         contAlphaOption.config(text="α′")
+        cont0.config(textvariable=eqC0Str)
+        cont1.config(textvariable=eqLeftBracket)
+        cont2.config(textvariable=eqC1Str)
+        cont3.config(textvariable=eqC2Str)
+        cont4.config(textvariable=eqRightBracket)
+        cont5.config(textvariable=eqVoid)
+        cont6.config(textvariable=eqVoid)
+        cont7.config(textvariable=eqVoid)
 
 def changeLabelsForProcessType(*args):
     changeContPlant.set(1)
@@ -347,6 +386,10 @@ def changeLabelsForProcessType(*args):
         plantTauOption.config(text="Nat. Freq.")
         plantZetaOption.config(text="Damping Factor")
         plantDeadOption.config(text="Dead Time")
+        proc0.config(textvariable=eqP)
+        proc1.config(textvariable=exp)
+        proc2.config(textvariable=eqVoid)
+        proc3.config(textvariable=eqVoid)
     elif(processSelect.get() == "Alt."):
         procPLabel.config(text="DC Gain")
         procFreqLabel.config(text="Time\n Constant")
@@ -356,6 +399,10 @@ def changeLabelsForProcessType(*args):
         plantTauOption.config(text="Time\n Constant")
         plantZetaOption.config(text="a")
         plantDeadOption.config(text="Dead Time")
+        proc0.config(textvariable=eqPPole0)
+        proc1.config(textvariable=eqMulti)
+        proc2.config(textvariable=eqPPole1)
+        proc3.config(textvariable=exp)
 
 def controlTypeChange(*args):
     changeContType.set(1)
@@ -1160,8 +1207,6 @@ Please enter valid numerical data using the format [a,b,c].""")
       S = 1/(1+C*P)
       UR = C/(1+C*P)
       UD = (-C*P)/(1+C*P)
-      print(MYR)
-      print(MYD)
       # System response and performance indexes computation.
       try:
          if mode == 'servo':
@@ -1315,6 +1360,10 @@ def simulatorRealtime(*args):
                 denominatorP = [1,(2*plantTauValue.get()*plantZetaValue.get()),plantTauValue.get()**2]
               else:
                 denominatorP = [plantZetaValue.get()*plantTauValue.get()**2,plantTauValue.get()*(plantZetaValue.get()+1),1]
+                pole0 = co.tf([plantPValue.get()],[plantZetaValue.get()*plantTauValue.get(),1])
+                pole1 = co.tf([1],[plantTauValue.get(),1])
+                eqPPole0.set(str(pole0))
+                eqPPole1.set(str(pole1))
               denP = [float(x) for x in denominatorP]
               A = co.tf(numP,denP)
            except ValueError:
@@ -1358,7 +1407,6 @@ has been entered.""")
               try:
                  if(controllerSelect.get() == "Standard"):
                     numeratorC = [((alphaValue.get()+1)*pValue.get()*dValue.get()*iValue.get()),pValue.get()*((alphaValue.get()*dValue.get()+iValue.get())),pValue.get()]
-                    #numeratorC = [(alphaValue.get()*pValue.get()*dValue.get()*iValue.get()),pValue.get()*(dValue.get()*(alphaValue.get()+1)+iValue.get()),1]
                  elif(controllerSelect.get() == "Parallel"):
                     numeratorC = [dValue.get()*(alphaValue.get()*pValue.get()+1), pValue.get()+(alphaValue.get()*iValue.get()*dValue.get()), iValue.get()]
                  elif(controllerSelect.get() == "Series"):
@@ -1372,11 +1420,28 @@ has been entered.""")
               try:
                  if(controllerSelect.get() == "Standard"):
                     denC = [(alphaValue.get()*dValue.get()*iValue.get()),iValue.get(),0]
-                    #denC = [(alphaValue.get()*dValue.get()),1]
+                    eqC2 = co.tf([1],[iValue.get(),0])
+                    eqC3 = co.tf([dValue.get(),0],[alphaValue.get()*dValue.get(),1])
+                    eqC0Str.set(str(pValue.get()))
+                    eqC1Str.set(str(1))
+                    eqC2Str.set(str(eqC2))
+                    eqC3Str.set(str(eqC3))
                  elif(controllerSelect.get() == "Parallel"):
                     denC = [alphaValue.get()*dValue.get(),1,0]
+                    eqC1 = co.tf([iValue.get()],[1,0])
+                    eqC2 = co.tf([dValue.get(),0],[dValue.get()*alphaValue.get(),1])
+                    eqC0Str.set(str(pValue.get()))
+                    eqC1Str.set(str(eqC1))
+                    eqC2Str.set(str(eqC2))
+                    eqC3Str.set('')
                  elif(controllerSelect.get() == "Series"):
                     denC = [alphaValue.get()*iValue.get()*dValue.get(), iValue.get(), 0]
+                    eqC1 = co.tf([iValue.get(),1],[iValue.get(),0])
+                    eqC2 = co.tf([dValue.get(),1],[dValue.get()*alphaValue.get(),1])
+                    eqC0Str.set(str(pValue.get()))
+                    eqC1Str.set(str(eqC1))
+                    eqC2Str.set(str(eqC2))
+                    eqC3Str.set('')
                  C = co.tf(numC,denC)
               except ValueError:
                  cdenEntry.focus()
@@ -1538,7 +1603,7 @@ tk.Label(sectorA,text='P(s) Transfer Function:').grid(row=9,column=1,columnspan=
 tk.Label(sectorA,text='Controller\n Parameters:', font=Desired_font).grid(row=1,column=3,padx=10,sticky=tk.W)
 tk.Label(sectorA,text='Numerator:').grid(row=2,column=3,padx=10,sticky=tk.W)
 tk.Label(sectorA,text='Denominator:').grid(row=3,column=3,padx=10,sticky=tk.W)
-tk.Label(sectorA,text='C(s) Transfer Function:').grid(row=9,column=3,columnspan=2,padx=10,sticky='nsew')
+tk.Label(sectorA,text='C(s) Transfer Function:').grid(row=9,column=4,columnspan=1,padx=10,sticky='nsew')
 procPLabel = tk.Label(sectorA,text='DC\n Gain:')
 procPLabel.grid(row=5,column=1,columnspan=1,padx=0,sticky='nsew')
 procFreqLabel = tk.Label(sectorA,text='Natural\n Frequency :')
@@ -1615,11 +1680,32 @@ else:
 # Frames.
 frameA = tk.Frame(sectorA)  # Frame containing the TF of P(s).
 frameA.grid(row=10,column=1,columnspan=2,sticky='ns',padx=10)
-tk.Label(frameA,textvariable=eqP).grid(row=0,column=0)  # Label for P(s) TF.
-tk.Label(frameA,textvariable=exp).grid(row=0,column=1)
+proc0 = tk.Label(frameA,textvariable=eqP)  # Label for P(s) TF.
+proc1 = tk.Label(frameA,textvariable=exp)
+proc2 = tk.Label(frameA,text='')
+proc3 = tk.Label(frameA,text='')
+proc0.grid(row=0,column=0)
+proc1.grid(row=0,column=1)
+proc2.grid(row=0,column=2)
+proc3.grid(row=0,column=3)
 frameB = tk.Frame(sectorA)  # Frame containing the TF of C(s).
-frameB.grid(row=10,column=3,columnspan=2,sticky='nsew',padx=10)
-tk.Label(frameB,textvariable=eqC,anchor='center').pack()  # Label for C(s) TF.
+frameB.grid(row=10,column=4,columnspan=2,sticky='nsew',padx=10)
+cont0 = tk.Label(frameB,textvariable=eqC0Str) # Label for C(s) TF.
+cont1 = tk.Label(frameB,textvariable=eqLeftBracket)
+cont2 = tk.Label(frameB,textvariable=eqC1Str)
+cont3 = tk.Label(frameB,textvariable=eqAdd)
+cont4 = tk.Label(frameB,textvariable=eqC2Str)
+cont5 = tk.Label(frameB,textvariable=eqAdd)
+cont6 = tk.Label(frameB,textvariable=eqC3Str)
+cont7 = tk.Label(frameB,textvariable=eqRightBracket)
+cont0.grid(row=0,column=0)
+cont1.grid(row=0,column=1)
+cont2.grid(row=0,column=2)
+cont3.grid(row=0,column=3)
+cont4.grid(row=0,column=4)
+cont5.grid(row=0,column=5)
+cont6.grid(row=0,column=6)
+cont7.grid(row=0,column=7)
 # Frames.
 controllerSelect.set(types[0])
 pidTypeSelect = ttk.OptionMenu(sectorA, controllerSelect, types[0], *types, command=changeLabelsForPIDType)
@@ -1635,7 +1721,7 @@ processTypeSelect.grid(row=4,column=5,padx=5)
 pResetButton = tk.Button(sectorA,text='Reset Values',bg='#829ce3',command=resetProcess, font = buttonFont)
 pResetButton.grid(row=11,column=1,columnspan=2,pady=10)
 cResetButton = tk.Button(sectorA,text='Reset Values',bg='#829ce3',command=resetController, font = buttonFont)
-cResetButton.grid(row=11,column=3,columnspan=2,pady=10)
+cResetButton.grid(row=11,column=4,columnspan=1,pady=10)
 #Images.
 #img = Image.open('./resources/help.png')
 #resized_image= img.resize((570,250), Image.ANTIALIAS)
