@@ -1170,7 +1170,7 @@ Please enter valid numerical data using the format [a,b,c].""")
 Please enter valid numerical data.""")
    eqP.set(str(A))
    if L == 0: exp.set('*e^0')
-   else: exp.set('(*e^-{} s)'.format(dT))
+   else: exp.set('*e^-({} s)'.format(dT))
    
    if mode == 'process':
       try:
@@ -1391,7 +1391,7 @@ def simulatorRealtime(*args):
         Please enter valid numerical data.""")
            eqP.set(str(A))
            if L == 0: exp.set('*e^0')
-           else: exp.set('(*e^-{} s)'.format(dT))
+           else: exp.set('*e^-({} s)'.format(dT))
            
            if mode == 'process':
               try:
