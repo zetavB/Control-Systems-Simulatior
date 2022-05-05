@@ -95,6 +95,7 @@ exp = tk.StringVar()
 eqC = tk.StringVar()
 eqPPole0 = tk.StringVar()
 eqPPole1 = tk.StringVar()
+eqPGain0 = tk.StringVar()
 eqC0Str = tk.StringVar()
 eqC1Str = tk.StringVar()
 eqC2Str = tk.StringVar()
@@ -104,7 +105,7 @@ eqAdd = tk.StringVar()
 eqVoid = tk.StringVar()
 eqLeftBracket = tk.StringVar()
 eqRightBracket = tk.StringVar()
-eqP.set('');exp.set('');eqC.set('');eqPPole0.set('');eqPPole1.set('');eqVoid.set('')  # No functions shown.
+eqP.set('');exp.set('');eqC.set('');eqPPole0.set('');eqPPole1.set('');eqVoid.set('');eqPGain0.set('')  # No functions shown.
 eqMulti.set(' * ')
 eqAdd.set(' + ')
 eqLeftBracket.set(' [ ')
@@ -390,6 +391,9 @@ def changeLabelsForProcessType(*args):
         proc1.config(textvariable=exp)
         proc2.config(textvariable=eqVoid)
         proc3.config(textvariable=eqVoid)
+        proc4.config(textvariable=eqVoid)
+        proc5.config(textvariable=eqVoid)
+        proc6.config(textvariable=eqVoid)
     elif(processSelect.get() == "Alt."):
         procPLabel.config(text="DC Gain")
         procFreqLabel.config(text="Time\n Constant")
@@ -399,10 +403,13 @@ def changeLabelsForProcessType(*args):
         plantTauOption.config(text="Time\n Constant")
         plantZetaOption.config(text="a")
         plantDeadOption.config(text="Dead Time")
-        proc0.config(textvariable=eqPPole0)
-        proc1.config(textvariable=eqMulti)
-        proc2.config(textvariable=eqPPole1)
-        proc3.config(textvariable=exp)
+        proc0.config(textvariable=eqPGain0)
+        proc1.config(textvariable=eqLeftBracket)
+        proc2.config(textvariable=eqPPole0)
+        proc3.config(textvariable=eqMulti)
+        proc4.config(textvariable=eqPPole1)
+        proc5.config(textvariable=eqRightBracket)
+        proc6.config(textvariable=exp)
 
 def controlTypeChange(*args):
     changeContType.set(1)
@@ -1360,8 +1367,9 @@ def simulatorRealtime(*args):
                 denominatorP = [1,(2*plantTauValue.get()*plantZetaValue.get()),plantTauValue.get()**2]
               else:
                 denominatorP = [plantZetaValue.get()*plantTauValue.get()**2,plantTauValue.get()*(plantZetaValue.get()+1),1]
-                pole0 = co.tf([plantPValue.get()],[plantZetaValue.get()*plantTauValue.get(),1])
+                pole0 = co.tf([1],[plantZetaValue.get()*plantTauValue.get(),1])
                 pole1 = co.tf([1],[plantTauValue.get(),1])
+                eqPGain0.set(str(plantPValue.get()))
                 eqPPole0.set(str(pole0))
                 eqPPole1.set(str(pole1))
               denP = [float(x) for x in denominatorP]
@@ -1680,14 +1688,20 @@ else:
 # Frames.
 frameA = tk.Frame(sectorA)  # Frame containing the TF of P(s).
 frameA.grid(row=10,column=1,columnspan=2,sticky='ns',padx=10)
-proc0 = tk.Label(frameA,textvariable=eqP)  # Label for P(s) TF.
-proc1 = tk.Label(frameA,textvariable=exp)
+proc0 = tk.Label(frameA,textvariable=eqP)
+proc1 = tk.Label(frameA,textvariable=exp)  # Label for P(s) TF.
 proc2 = tk.Label(frameA,text='')
 proc3 = tk.Label(frameA,text='')
+proc4 = tk.Label(frameA,text='')
+proc5 = tk.Label(frameA,text='')
+proc6 = tk.Label(frameA,text='')
 proc0.grid(row=0,column=0)
 proc1.grid(row=0,column=1)
 proc2.grid(row=0,column=2)
 proc3.grid(row=0,column=3)
+proc4.grid(row=0,column=4)
+proc5.grid(row=0,column=5)
+proc6.grid(row=0,column=6)
 frameB = tk.Frame(sectorA)  # Frame containing the TF of C(s).
 frameB.grid(row=10,column=4,columnspan=2,sticky='nsew',padx=10)
 cont0 = tk.Label(frameB,textvariable=eqC0Str) # Label for C(s) TF.
