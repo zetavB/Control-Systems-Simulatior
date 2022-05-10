@@ -1597,9 +1597,10 @@ sectorF.grid(column=1, sticky="NSEW", row=0)
 # Font Control
 Desired_font = tkinter.font.Font(size = 9, weight = "bold")
 buttonFont = tkinter.font.Font(size = 9, weight = "bold")
-if(scalingFactor < 1.28):
-    Desired_font = default_font
-    buttonFont = default_font
+if(platform.system() != 'Windows'):
+    if(scalingFactor < 1.28):
+        Desired_font = default_font
+        buttonFont = default_font
 
 # Sector A widgets.
 # Labels.
